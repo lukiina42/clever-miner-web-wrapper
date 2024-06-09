@@ -1,0 +1,13 @@
+version: '3'
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    ports:
+      - '6000:5432'
+    environment:
+      POSTGRES_PASSWORD: 2412
+      POSTGRES_DB: postgres
+      POSTGRES_USER: apiserver
+    volumes:
+      - .docker-data/postgres:/var/lib/postgresql/clever-miner
