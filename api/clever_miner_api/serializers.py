@@ -17,11 +17,13 @@ class DatasetSerializer(serializers.ModelSerializer):
         name = validated_data.get('name')
 
         # Upload the file to S3
-        s3 = boto3.client('s3')
-        bucket_name = settings.AWS_BUCKET_NAME
+        s3 = boto3.client('s3',
+                          aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                          )
         s3_key = f'datasets/{file.name}'
 
-        s3.upload_fileobj(file, bucket_name, s3_key)
+        s3.upload_fileobj(file, settings.AWS_STORAGE_BUCKET_NAME, s3_key)
 
         # Save the dataset information in the database
         dataset = DataSet(name=name, s3_key=s3_key)

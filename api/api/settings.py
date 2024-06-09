@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'clever_miner_api',
     'rest_framework',
     'drf_spectacular',
+    'corsheaders'
 ]
 
 REST_FRAMEWORK = {
@@ -62,6 +63,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
 ]
 
 ROOT_URLCONF = 'api.urls'

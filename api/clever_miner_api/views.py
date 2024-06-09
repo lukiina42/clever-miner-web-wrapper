@@ -1,6 +1,6 @@
 # api/clever_miner_api/views.py
 from drf_spectacular.utils import extend_schema
-from rest_framework.parsers import FileUploadParser
+from rest_framework.parsers import FileUploadParser, MultiPartParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -38,7 +38,7 @@ from .serializers import DatasetSerializer
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class DatasetApiView(APIView):
-    parser_classes = (FileUploadParser,)
+    parser_classes = (MultiPartParser,)
 
     # add permission to check if user is authenticated
     # permission_classes = [permissions.IsAuthenticated]
