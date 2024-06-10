@@ -1,6 +1,6 @@
 import type { ClassValue } from 'clsx';
 
-import clsxm from '../../utils/clsxm';
+import clsxm from '../../utils/clsxm.ts';
 
 type Props = {
   errorMessage: string;

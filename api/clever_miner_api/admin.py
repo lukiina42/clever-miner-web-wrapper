@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import DataSet
+from .models import Dataset
 
 # Register your models here.
-admin.site.register(DataSet)
+admin.site.register(Dataset)

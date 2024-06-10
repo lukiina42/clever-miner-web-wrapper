@@ -1,9 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 # Create your models here.
 
-class DataSet(models.Model):
+# TODO should contain delimiter as well
+class Dataset(models.Model):
     name = models.CharField(max_length=32)
     s3_key = models.CharField(max_length=256)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)

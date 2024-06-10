@@ -7,7 +7,7 @@ import type { FieldValues, UseFormRegister } from 'react-hook-form';
 import clsxm from '../../utils/clsxm.ts';
 import { displayNotification } from '../../utils/displayNotification.ts';
 
-import FormErrorMessage from './FormErrorMessage';
+import FormErrorMessage from './FormErrorMessage.tsx';
 
 type Props = Omit<JSX.IntrinsicElements['input'], 'className'> & {
   name: string;
