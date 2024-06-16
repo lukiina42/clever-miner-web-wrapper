@@ -1,13 +1,5 @@
-import reactLogo from '../../assets/react.svg';
-import viteLogo from '/vite.svg';
 import '../../App.css';
-import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import FileField from '@/components/form/FileField.tsx';
 import { z } from 'zod';
 import useZodForm from '@/components/form/useZodForm.ts';

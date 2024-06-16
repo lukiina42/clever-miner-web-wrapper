@@ -1,24 +1,25 @@
 import { LocalDate, YearMonth } from '@js-joda/core';
 import { coerce, string, z } from 'zod';
 
+//translate this file to english
 export const IntMandatory = (min: number, max: number) =>
   z
     .string({
-      invalid_type_error: 'Toto pole je povinné',
-      required_error: 'Toto pole je povinné',
+      invalid_type_error: 'This field is required',
+      required_error: 'This field is required',
     })
     .min(1, {
-      message: 'Toto pole je povinné',
+      message: 'This field is required',
     })
     .pipe(
       coerce
         .number({
-          invalid_type_error: 'Hodnota musí být celé číslo',
-          required_error: 'Toto pole je povinné',
+          invalid_type_error: 'The value must be an integer',
+          required_error: 'This field is required',
         })
-        .int({ message: 'Hodnota musí být celé číslo' })
-        .max(max, { message: `Maximální hodnota je ${max}` })
-        .min(min, { message: `Minimální hodnota je ${min}` })
+        .int({ message: 'The value must be an integer' })
+        .max(max, { message: `Max value is ${max}` })
+        .min(min, { message: `Min value is ${min}` })
     )
     .pipe(z.coerce.string());
 
@@ -29,22 +30,22 @@ export const IntOptional = (min: number, max: number) =>
     .transform((value) => (value === '' ? null : value))
     .nullable()
     .refine((value) => value === null || !isNaN(Number(value)), {
-      message: 'Hodnota musí být celé číslo',
+      message: 'The value must be an integer',
     })
     .transform((value) => (value === null ? null : Number(value)))
     .pipe(
       coerce
         .number({
-          invalid_type_error: 'Hodnota musí být celé číslo',
-          required_error: 'Toto pole je povinné',
+          invalid_type_error: 'The value must be an integer',
+          required_error: 'This field is required',
         })
-        .int({ message: 'Hodnota musí být celé číslo' })
-        .max(max, { message: `Maximální hodnota je ${max}` })
+        .int({ message: 'The value must be an integer' })
+        .max(max, { message: `Min value is ${max}` })
         .refine(
           (value) => {
             return value === 0 || value > min;
           },
-          { message: `Hodnota musí být vyšší nebo rovna ${min}` }
+          { message: `The value must be greater than or equal to ${min}` }
         )
         .nullable()
     )
@@ -54,20 +55,20 @@ export const IntOptional = (min: number, max: number) =>
 export const FloatMandatory = (decimal: number, max: number, min = 0) =>
   z
     .string({
-      invalid_type_error: 'Toto pole je povinné',
-      required_error: 'Toto pole je povinné',
+      invalid_type_error: 'This field is required',
+      required_error: 'This field is required',
     })
     .min(1, {
-      message: 'Toto pole je povinné',
+      message: 'This field is required',
     })
     .pipe(
       coerce
         .number({
-          invalid_type_error: 'Hodnota musí být celé nebo desetinné číslo',
-          required_error: 'Toto pole je povinné',
+          invalid_type_error: 'The value must be an integer or decimal number',
+          required_error: 'This field is required',
         })
         .multipleOf(decimal, {
-          message: `Maximální počet desetinných míst musí být ve tvaru ${decimal}`,
+          message: `Max amount of decimal places must be in format ${decimal}`,
         })
         .max(max, { message: `Maximální hodnota je ${max}` })
         .min(min, { message: `Minimální hodnota je ${min}` })
@@ -81,19 +82,19 @@ export const FloatOptional = (decimal: number, max: number, min = 0) =>
     .transform((value) => (value === '' ? null : value))
     .nullable()
     .refine((value) => value === null || !isNaN(Number(value)), {
-      message: 'Hodnota musí být celé, nebo desetinné číslo',
+      message: 'The value must be an integer or decimal number',
     })
     .transform((value) => (value === null ? null : Number(value)))
     .pipe(
       z
         .number()
         .multipleOf(decimal, {
-          message: `Maximální počet desetinných míst musí být ve tvaru ${decimal}`,
+          message: `Max amount of decimal places must be in format ${decimal}`,
         })
-        .nonnegative({ message: 'Hodnota musí být ≥ 0' })
-        .max(max, { message: `Hodnota musí být ≤ ${max}` })
+        .nonnegative({ message: 'The value must be ≥ 0' })
+        .max(max, { message: `The value msut be ≤ ${max}` })
         .refine((value) => value === null || value >= min, {
-          message: `Hodnota musí být vyšší nebo rovna ${min}`,
+          message: `The value must be greater than or equal to ${min}`,
         })
         .nullable()
     )
@@ -102,7 +103,7 @@ export const FloatOptional = (decimal: number, max: number, min = 0) =>
 
 export const StringOptional = (max: number) =>
   string()
-    .max(max, { message: `Maximální počet znaků je ${max}` })
+    .max(max, { message: `Max amount of characters is ${max}` })
     .trim()
     .transform((value) => (value === '' ? null : value))
     .nullable()
@@ -110,20 +111,20 @@ export const StringOptional = (max: number) =>
 
 export const StringMandatory = (max: number, min = 1) =>
   string({
-    invalid_type_error: 'Toto pole je povinné',
-    required_error: 'Toto pole je povinné',
+    invalid_type_error: 'This field is required',
+    required_error: 'This field is required',
   })
-    .min(min, { message: `Zadejte minimálně ${min} znaků` })
-    .max(max, { message: `Maximální počet znaků je ${max}` })
+    .min(min, { message: `Enter min ${min} character` })
+    .max(max, { message: `Max amount of characters is ${max}` })
     .trim();
 
 export const SelectBoxT = z
   .string({
-    invalid_type_error: 'Toto pole je povinné',
-    required_error: 'Toto pole je povinné',
+    invalid_type_error: 'This field is required',
+    required_error: 'This field is required',
   })
   .min(1, {
-    message: 'Povinné',
+    message: 'Required',
   });
 
 export function yearMonth() {
@@ -144,7 +145,7 @@ export function yearMonth() {
   });
 }
 
-const localDateErrorMessage = 'Zadejte platný datum zadejte ve formátu YYYY-MM-DD';
+const localDateErrorMessage = 'Enter valid date in format YYYY-MM-DD';
 
 export function LocalDateMandatory() {
   return z.custom<string>(

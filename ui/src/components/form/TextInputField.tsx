@@ -17,7 +17,7 @@ type Props = Omit<JSX.IntrinsicElements['input'], 'className'> & {
 const TextInputField = forwardRef<HTMLInputElement, Props>(
   ({ name, required, errorMessage, leftComponent, className, ...rest }: Props, ref) => {
     return (
-      <div className="relative flex rounded-md focus-within:z-10">
+      <div className="relative flex flex-col gap-1 rounded-md">
         {leftComponent !== undefined && (
           <div className="absolute inset-y-0 left-0 flex items-center">{leftComponent}</div>
         )}

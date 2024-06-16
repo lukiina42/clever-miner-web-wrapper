@@ -32,7 +32,6 @@ export const displayNotification = (
       toast(content, { ...options });
       break;
     default:
-      /* eslint-disable no-console */
       console.error('Unknown notification toast status');
   }
 };

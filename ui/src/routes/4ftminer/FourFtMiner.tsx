@@ -2,16 +2,15 @@ import '../../App.css';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import useZodForm from '@/components/form/useZodForm.ts';
-import { Combobox } from '@/components/form/Combobox.tsx';
 import { useState } from 'react';
-import TextInputField from '@/components/form/TextInputField.tsx';
 import {
   FloatMandatory,
   IntMandatory,
   StringMandatory,
 } from '@/components/form/formValidationTypes.ts';
-import { Label } from '@/components/ui/label.tsx';
-import { Button } from '@/components/ui/button.tsx';
+import FourFtHeading from '@/routes/4ftminer/FourFtHeading.tsx';
+import FourFtForm from '@/routes/4ftminer/FourFtForm.tsx';
+import FourFtResults, { Rule } from '@/routes/4ftminer/FourFtResults.tsx';
 
 const fourftSchema = z.object({
   base: IntMandatory(1, 1000000),
@@ -27,9 +26,9 @@ const fourftDefaultValues = {
   succedentName: '',
 } satisfies DatasetSchemaT;
 
-type DatasetSchemaT = z.infer<typeof fourftSchema>;
+export type DatasetSchemaT = z.infer<typeof fourftSchema>;
 
-interface Dataset {
+export interface Dataset {
   created_at: string;
   id: string;
   name: string;
@@ -40,6 +39,7 @@ export default function FourFtMiner() {
   const queryClientFromHook = useQueryClient();
 
   const [currentDataset, setCurrentDataset] = useState<Dataset | undefined>();
+  const [displayDatasetErrorMessage, setDisplayDatasetErrorMessage] = useState<boolean>(false);
 
   const {
     register,
@@ -53,10 +53,11 @@ export default function FourFtMiner() {
 
   const onSubmit = async (data: DatasetSchemaT) => {
     const dataset = currentDataset;
-    if (!dataset) {
-      console.error('No dataset selected');
+    if (dataset === undefined) {
+      setDisplayDatasetErrorMessage(true);
       return;
     }
+    setDisplayDatasetErrorMessage(false);
     processFourFtRequestMutation.mutate({
       dataset_id: dataset.id,
       ...data,
@@ -77,11 +78,10 @@ export default function FourFtMiner() {
           'Content-Type': 'application/json',
         },
       });
-      return result.json();
+      return (await result.json()) as Promise<Rule[]>;
     },
     onSuccess: async (data) => {
       console.log(data);
-      await queryClientFromHook.invalidateQueries({ queryKey: ['datasets'] });
     },
     onError: (error) => {
       console.error(error);
@@ -99,57 +99,24 @@ export default function FourFtMiner() {
   const datasets = datasetsQueryResponse.data as Dataset[];
 
   return (
-    <div className={'flex flex-col gap-8 w-full h-full justify-center items-center'}>
-      <div className={'text-2xl font-bold'}>4FT Miner</div>
-      <form
-        className={'flex flex-col items-start gap-5 w-[300px]'}
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className={'text-lg font-bold'}>Configure options</div>
-        <div className={'flex flex-col gap-1'}>
-          <Label htmlFor="dataset">Dataset</Label>
-          <Combobox
-            optionName={'dataset'}
-            options={datasets}
-            onValueChange={(value) =>
-              setCurrentDataset(datasets.find((dataset) => value.id === dataset.id))
-            }
-          />
-        </div>
-        <div className={'w-full'}>
-          <Label htmlFor="base">Base</Label>
-          <TextInputField
-            {...register('base')}
-            placeholder={'1000'}
-            errorMessage={errors?.base?.message}
-          />
-        </div>
-        <div className={'w-full'}>
-          <Label htmlFor="confidence">Confidence</Label>
-          <TextInputField
-            {...register('confidence')}
-            placeholder={'0.6'}
-            errorMessage={errors?.confidence?.message}
-          />
-        </div>
-        <div className={'w-full'}>
-          <Label htmlFor="antecedentName">Antecedent name</Label>
-          <TextInputField
-            {...register('antecedentName')}
-            placeholder={'Age'}
-            errorMessage={errors?.antecedentName?.message}
-          />
-        </div>
-        <div className={'w-full'}>
-          <Label htmlFor="succedentName">Succedent name</Label>
-          <TextInputField
-            {...register('succedentName')}
-            placeholder={'Income'}
-            errorMessage={errors?.succedentName?.message}
-          />
-        </div>
-        <Button type={'submit'}>Submit</Button>
-      </form>
+    <div className={'flex flex-col w-full h-full'}>
+      <FourFtHeading />
+      <div className={'flex w-full h-full'}>
+        <FourFtForm
+          onSubmit={onSubmit}
+          handleSubmit={handleSubmit}
+          register={register}
+          errors={errors}
+          datasets={datasets}
+          setCurrentDataset={setCurrentDataset}
+          displayDatasetErrorMessage={displayDatasetErrorMessage}
+          isLoading={processFourFtRequestMutation.isPending}
+        />
+        <FourFtResults
+          rules={processFourFtRequestMutation.data}
+          isLoading={processFourFtRequestMutation.isPending}
+        />
+      </div>
     </div>
   );
 }

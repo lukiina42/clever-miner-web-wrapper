@@ -15,7 +15,7 @@ const queryClient = new QueryClient();
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<Home />}>
+    <Route path="*" element={<Home />}>
       <Route path="4ft-miner" element={<FourFtMiner />} />
       <Route path="dataset" element={<Dataset />} />
     </Route>
