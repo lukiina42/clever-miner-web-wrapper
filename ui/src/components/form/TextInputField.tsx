@@ -4,7 +4,7 @@ import { forwardRef, type ReactNode } from 'react';
 import clsxm from '../../utils/clsxm.ts';
 
 import FormErrorMessage from './FormErrorMessage.tsx';
-import {Input} from "@/components/ui/input.tsx";
+import { Input } from '@/components/ui/input.tsx';
 
 type Props = Omit<JSX.IntrinsicElements['input'], 'className'> & {
   name: string;
