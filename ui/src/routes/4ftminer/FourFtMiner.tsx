@@ -36,8 +36,6 @@ export interface Dataset {
 }
 
 export default function FourFtMiner() {
-  const queryClientFromHook = useQueryClient();
-
   const [currentDataset, setCurrentDataset] = useState<Dataset | undefined>();
   const [displayDatasetErrorMessage, setDisplayDatasetErrorMessage] = useState<boolean>(false);
 
