@@ -15,7 +15,7 @@ def get_boto_s3_client():
                         )
 
 
-def create_presigned_url(bucket_name, object_name, expiration=24000):
+def   create_presigned_url(bucket_name, object_name, expiration=24000):
     """Generate a presigned URL to share an S3 object
 
     :param bucket_name: string

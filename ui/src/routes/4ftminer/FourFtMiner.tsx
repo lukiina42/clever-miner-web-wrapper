@@ -1,43 +1,67 @@
 import '../../App.css';
-import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import useZodForm from '@/components/form/useZodForm.ts';
 import { useState } from 'react';
 import {
   FloatMandatory,
   IntMandatory,
-  StringMandatory,
 } from '@/components/form/formValidationTypes.ts';
 import FourFtHeading from '@/routes/4ftminer/FourFtHeading.tsx';
 import FourFtForm from '@/routes/4ftminer/FourFtForm.tsx';
-import FourFtResults, { Rule } from '@/routes/4ftminer/FourFtResults.tsx';
+import { Dataset, useGetDatasets } from '@/api/dataset.ts';
+import { useCreateFourFt } from '@/api/fourft.ts';
+import FourFtResults from '@/routes/4ftminer/FourFtResults.tsx';
 
 const fourftSchema = z.object({
   base: IntMandatory(1, 1000000),
   confidence: FloatMandatory(0.001, 1),
-  antecedentName: StringMandatory(256),
-  succedentName: StringMandatory(256),
+  // antecedentName: StringMandatory(256),
+  // succedentName: StringMandatory(256),
+  // antecedentName: z.array(z.object(
+  //     {
+  //         name: StringMandatory(256),
+  //     }
+  // )),
+  // succedentName: z.array(z.object(
+  //     {
+  //         name: StringMandatory(256),
+  //     }
+  // )),
 });
 
 const fourftDefaultValues = {
   base: '',
   confidence: '',
-  antecedentName: '',
-  succedentName: '',
-} satisfies DatasetSchemaT;
+} satisfies FourFtSchemaT;
 
-export type DatasetSchemaT = z.infer<typeof fourftSchema>;
+export type FourFtSchemaT = z.infer<typeof fourftSchema>;
 
-export interface Dataset {
-  created_at: string;
-  id: string;
-  name: string;
-  url: string;
-}
+export type DatasetState = {
+  value: Dataset | undefined;
+  errorMessage: string | undefined;
+};
+
+const initialDatasetState: DatasetState = {
+  value: undefined,
+  errorMessage: undefined,
+};
+
+export type ComboboxState = {
+  value: string | undefined;
+  errorMessage: string | undefined;
+};
+
+const initialComboboxState: ComboboxState = {
+  value: undefined,
+  errorMessage: undefined,
+};
 
 export default function FourFtMiner() {
-  const [currentDataset, setCurrentDataset] = useState<Dataset | undefined>();
-  const [displayDatasetErrorMessage, setDisplayDatasetErrorMessage] = useState<boolean>(false);
+  const [currentDatasetState, setCurrentDatasetState] = useState<DatasetState>(initialDatasetState);
+  const [currentAntecedentName, setCurrentAntecedentName] =
+    useState<ComboboxState>(initialComboboxState);
+  const [currentSuccedentName, setCurrentSuccedentName] =
+    useState<ComboboxState>(initialComboboxState);
 
   const {
     register,
@@ -49,52 +73,51 @@ export default function FourFtMiner() {
     mode: 'onSubmit',
   });
 
-  const onSubmit = async (data: DatasetSchemaT) => {
-    const dataset = currentDataset;
-    if (dataset === undefined) {
-      setDisplayDatasetErrorMessage(true);
+  const onSubmit = async (data: FourFtSchemaT) => {
+    console.log(data);
+    const dataset = currentDatasetState;
+    if (dataset.value === undefined) {
+      setCurrentDatasetState((prevState) => {
+        return {
+          ...prevState,
+          errorMessage: 'Please select a dataset',
+        };
+      });
       return;
     }
-    setDisplayDatasetErrorMessage(false);
+    if (currentAntecedentName.value === undefined) {
+      setCurrentAntecedentName((prevState) => {
+        return {
+          ...prevState,
+          errorMessage: 'Please select an antecedent name',
+        };
+      });
+      return;
+    }
+    if (currentSuccedentName.value === undefined) {
+      setCurrentSuccedentName((prevState) => {
+        return {
+          ...prevState,
+          errorMessage: 'Please select a succedent name',
+        };
+      });
+      return;
+    }
+
     processFourFtRequestMutation.mutate({
-      dataset_id: dataset.id,
+      dataset_id: dataset.value.id.toString(),
+      antecedentName: currentAntecedentName.value,
+      succedentName: currentSuccedentName.value,
       ...data,
     });
   };
 
-  const processFourFtRequestMutation = useMutation({
-    mutationFn: async (
-      data: DatasetSchemaT & {
-        dataset_id: string;
-      }
-    ) => {
-      const stringifiedData = JSON.stringify(data);
-      const result = await fetch('http://localhost:8000/clever-miner/fourftminer', {
-        method: 'POST',
-        body: stringifiedData,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      return (await result.json()) as Promise<Rule[]>;
-    },
-    onSuccess: async (data) => {
-      console.log(data);
-    },
-    onError: (error) => {
-      console.error(error);
-    },
-  });
+  const processFourFtRequestMutation = useCreateFourFt();
 
-  const datasetsQueryResponse = useSuspenseQuery({
-    queryKey: ['datasets'],
-    queryFn: async () => {
-      const fetchResult = await fetch('http://localhost:8000/clever-miner/dataset');
-      return await fetchResult.json();
-    },
-  });
+  const datasetsQueryResponse = useGetDatasets();
 
-  const datasets = datasetsQueryResponse.data as Dataset[];
+  const datasets = datasetsQueryResponse.data ?? [];
+  const datasetsLoading = datasetsQueryResponse.isLoading;
 
   return (
     <div className={'flex flex-col w-full h-full'}>
@@ -106,9 +129,14 @@ export default function FourFtMiner() {
           register={register}
           errors={errors}
           datasets={datasets}
-          setCurrentDataset={setCurrentDataset}
-          displayDatasetErrorMessage={displayDatasetErrorMessage}
+          setCurrentDataset={setCurrentDatasetState}
+          setCurrentAntecedentName={setCurrentAntecedentName}
+          setCurrentSuccedentName={setCurrentSuccedentName}
+          currentAntecedentName={currentAntecedentName}
+          currentSuccedentName={currentSuccedentName}
+          currentDataset={currentDatasetState}
           isLoading={processFourFtRequestMutation.isPending}
+          datasetsLoading={datasetsLoading}
         />
         <FourFtResults
           rules={processFourFtRequestMutation.data}

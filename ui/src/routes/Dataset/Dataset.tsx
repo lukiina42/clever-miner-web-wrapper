@@ -1,11 +1,11 @@
 import '../../App.css';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import FileField from '@/components/form/FileField.tsx';
 import { z } from 'zod';
 import useZodForm from '@/components/form/useZodForm.ts';
-import { BeatLoader } from 'react-spinners';
 import { DocumentPlusIcon } from '@heroicons/react/24/solid';
-import {baseApiUrl} from "@/utils/constants.ts";
+import { useCreateDataset, useGetDatasets } from '@/api/dataset.ts';
+import { LoadingSpinner } from '@/components/ui/loadingSpinner.tsx';
 
 const datasetSchema = z.object({
   file: z.any(),
@@ -17,13 +17,6 @@ const datasetDefaultValues = {
 
 type DatasetSchemaT = z.infer<typeof datasetSchema>;
 
-interface Dataset {
-  created_at: string;
-  id: string;
-  name: string;
-  url: string;
-}
-
 export default function Dataset() {
   const queryClientFromHook = useQueryClient();
 
@@ -33,36 +26,12 @@ export default function Dataset() {
     mode: 'onSubmit',
   });
 
-  const datasetsQueryResponse = useQuery({
-    queryKey: ['datasets'],
-    queryFn: async () => {
-      const fetchResult = await fetch('http://localhost:8000/clever-miner/dataset');
-      return await fetchResult.json();
-    },
-  });
+  const datasetsQueryResponse = useGetDatasets();
 
-  const { isLoading, error } = datasetsQueryResponse;
-  const datasets = datasetsQueryResponse.data as Dataset[];
+  const { isLoading } = datasetsQueryResponse;
+  const datasets = datasetsQueryResponse.data ?? [];
 
-  const uploadDatasetMutation = useMutation({
-    mutationFn: async (dataset: { file: File }) => {
-      const data = new FormData();
-      data.append('file', dataset.file);
-      console.log(data.get('file'));
-      const result = await fetch('http://localhost:8000/clever-miner/dataset', {
-        method: 'POST',
-        body: data,
-      });
-      return result.json();
-    },
-    onSuccess: async (data) => {
-      console.log(data);
-      await queryClientFromHook.invalidateQueries({ queryKey: ['datasets'] });
-    },
-    onError: (error) => {
-      console.error(error);
-    },
-  });
+  const uploadDatasetMutation = useCreateDataset(queryClientFromHook);
 
   const addFile = (file: File) => {
     setValue('file', file);
@@ -91,12 +60,7 @@ export default function Dataset() {
         <div className={'text-lg font-bold'}>Uploaded datasets</div>
         <div className={'flex flex-col gap-2'}>
           {isLoading ? (
-            <BeatLoader
-              size={15}
-              color={'black'}
-              cssOverride={{ alignItems: 'center' }}
-              aria-label="Loading Spinner"
-            />
+            <LoadingSpinner className="h-8 w-8 shrink-0 opacity-80" />
           ) : (
             datasets.map((dataset) => {
               return (

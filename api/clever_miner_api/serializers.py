@@ -6,15 +6,18 @@ import boto3
 from .utils.rand_string import generate_random_string
 from .utils.s3 import create_presigned_url, get_boto_s3_client
 
+import pandas as pd
+
 
 class DatasetSerializer(serializers.ModelSerializer):
     file = serializers.FileField(write_only=True, required=True)
-    url = serializers.SerializerMethodField()
+    # url = serializers.SerializerMethodField()
+    # header_names = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
-        fields = ['id', 's3_key', 'file', 'created_at', 'name', 'url']
-        read_only_fields = ['s3_key', 'created_at', 'name', 'url']
+        fields = ['id', 's3_key', 'file', 'created_at', 'name']
+        read_only_fields = ['s3_key', 'created_at', 'name']
 
     def create(self, validated_data):
         file = validated_data.pop('file')
@@ -33,6 +36,20 @@ class DatasetSerializer(serializers.ModelSerializer):
         dataset.save()
 
         return dataset
+
+    def to_representation(self, obj):
+        representation = super().to_representation(obj)
+
+        # Cache the result of get_url
+        presigned_url = create_presigned_url(settings.AWS_STORAGE_BUCKET_NAME, obj.s3_key)
+
+        file = pd.read_csv(presigned_url)
+        representation['url'] = presigned_url
+        columns = list(file.columns)
+        # map columns and trim spaces around the header names
+        representation['header_names'] = list(map(lambda x: x.strip(), columns))
+
+        return representation
 
     def get_url(self, obj):
         return create_presigned_url(settings.AWS_STORAGE_BUCKET_NAME, obj.s3_key)
