@@ -118,6 +118,14 @@ export const StringMandatory = (max: number, min = 1) =>
     .max(max, { message: `Max amount of characters is ${max}` })
     .trim();
 
+export const ComboboxStringMandatory = (min = 1) =>
+  string({
+    invalid_type_error: 'This field is required',
+    required_error: 'This field is required',
+  })
+    .min(min, { message: 'This field is required' })
+    .trim();
+
 export const SelectBoxT = z
   .string({
     invalid_type_error: 'This field is required',

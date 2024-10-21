@@ -1,11 +1,20 @@
 import React, { SetStateAction, useMemo } from 'react';
 import { Label } from '@/components/ui/label.tsx';
-import { Combobox } from '@/components/form/Combobox.tsx';
 import TextInputField from '@/components/form/TextInputField.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { FieldErrors, FieldValues, UseFormHandleSubmit, UseFormRegister } from 'react-hook-form';
+import {
+  Control,
+  FieldErrors,
+  FieldValues,
+  UseFormClearErrors,
+  UseFormHandleSubmit,
+  UseFormRegister,
+  UseFormSetValue,
+} from 'react-hook-form';
 import { Dataset } from '@/api/dataset.ts';
-import { ComboboxState, DatasetState, FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
+import { DatasetState, FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
+import { ComboboxWrapper } from '@/components/form/ComboboxWrapper.tsx';
+import { ComboboxHookFormWrapper } from '@/components/form/ComboboxHookFormWrapper';
 
 interface Props<T extends FieldValues> {
   onSubmit: (data: T) => void;
@@ -14,13 +23,14 @@ interface Props<T extends FieldValues> {
   errors: FieldErrors<T>;
   datasets: Dataset[];
   currentDataset: DatasetState;
-  currentAntecedentName: ComboboxState;
-  currentSuccedentName: ComboboxState;
   setCurrentDataset: React.Dispatch<SetStateAction<DatasetState>>;
-  setCurrentAntecedentName: React.Dispatch<SetStateAction<ComboboxState>>;
-  setCurrentSuccedentName: React.Dispatch<SetStateAction<ComboboxState>>;
+  antecedentName: string;
+  succedentName: string;
   isLoading: boolean;
   datasetsLoading: boolean;
+  control: Control<T>;
+  setValue: UseFormSetValue<T>;
+  clearErrors: UseFormClearErrors<T>;
 }
 
 export default function FourFtForm({
@@ -30,13 +40,14 @@ export default function FourFtForm({
   errors,
   datasets,
   setCurrentDataset,
-  setCurrentSuccedentName,
-  setCurrentAntecedentName,
-  currentSuccedentName,
+  succedentName,
+  antecedentName,
   currentDataset,
-  currentAntecedentName,
   isLoading,
   datasetsLoading,
+  control,
+  setValue,
+  clearErrors
 }: Props<FourFtSchemaT> & { handleSubmit: UseFormHandleSubmit<FourFtSchemaT> }) {
   const datasetHeaderNames = useMemo(() => {
     const headerNames = currentDataset?.value?.header_names ?? [];
@@ -46,11 +57,11 @@ export default function FourFtForm({
   return (
     <div className={'h-full px-4 pt-4 border-r-2 border-gray-200 w-fit'}>
       <form
-        className={'flex flex-col gap-1 items-start w-[300px]'}
+        className={'flex flex-col gap-2 items-start w-[300px]'}
         onSubmit={handleSubmit(onSubmit)}
       >
         <div className={'text-lg font-bold'}>Configure options</div>
-        <Combobox
+        <ComboboxWrapper
           optionName={'dataset'}
           label={'Dataset'}
           isLoading={datasetsLoading}
@@ -62,6 +73,7 @@ export default function FourFtForm({
             })
           }
           errorMessage={currentDataset.errorMessage}
+          disabled={datasetsLoading}
         />
         <div className={'w-full'}>
           <Label htmlFor="base">Base</Label>
@@ -79,33 +91,35 @@ export default function FourFtForm({
             errorMessage={errors?.confidence?.message}
           />
         </div>
-        <Combobox
+        <ComboboxHookFormWrapper
           optionName={'antecedent Name'}
           label={'Antecedent name'}
           isLoading={datasetsLoading}
           options={datasetHeaderNames}
-          onValueChange={(value) =>
-            setCurrentAntecedentName({
-              value: value.id,
-              errorMessage: undefined,
-            })
-          }
-          errorMessage={currentAntecedentName.errorMessage}
+          onValueChange={(value) => {
+            setValue('antecedentName', value.name);
+            clearErrors('antecedentName')
+          }}
           disabled={currentDataset.value === undefined}
+          value={antecedentName}
+          control={control}
+          error={errors.antecedentName}
+          {...register('antecedentName')}
         />
-        <Combobox
+        <ComboboxHookFormWrapper
           optionName={'succedent name'}
           label={'Succedent name'}
           isLoading={datasetsLoading}
           options={datasetHeaderNames}
-          onValueChange={(value) =>
-            setCurrentSuccedentName({
-              value: value.id,
-              errorMessage: undefined,
-            })
-          }
-          errorMessage={currentSuccedentName.errorMessage}
+          onValueChange={(value) => {
+            setValue('succedentName', value.name);
+            clearErrors('succedentName')
+          }}
+          value={succedentName}
+          control={control}
+          error={errors.succedentName}
           disabled={currentDataset.value === undefined}
+          {...register('succedentName')}
         />
         <Button disabled={isLoading} type={'submit'} className={'mt-2 self-end'}>
           Submit

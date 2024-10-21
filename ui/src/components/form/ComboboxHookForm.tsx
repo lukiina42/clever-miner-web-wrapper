@@ -23,20 +23,19 @@ interface Props {
   onValueChange: (value: Value) => void;
   optionName: string;
   isLoading: boolean;
-  label: string;
-  errorMessage: string | undefined;
   disabled?: boolean;
+  value: string;
 }
 
-export function Combobox({
+export function ComboboxHookForm({
   options,
   onValueChange,
   optionName,
   isLoading,
   disabled = false,
+  value,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState('');
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -70,12 +69,9 @@ export function Combobox({
                     key={option.id}
                     value={option.id}
                     onSelect={(currentValue) => {
-                      console.log(currentValue, options);
                       const correspondingOption = options?.find(
                         (option) => option.id === currentValue
                       );
-                      console.log(correspondingOption);
-                      setValue(correspondingOption?.name ?? '');
                       if (!correspondingOption) return;
                       onValueChange(correspondingOption);
                       setOpen(false);

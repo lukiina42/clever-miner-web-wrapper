@@ -3,6 +3,7 @@ import { z } from 'zod';
 import useZodForm from '@/components/form/useZodForm.ts';
 import { useState } from 'react';
 import {
+  ComboboxStringMandatory,
   FloatMandatory,
   IntMandatory,
 } from '@/components/form/formValidationTypes.ts';
@@ -11,12 +12,13 @@ import FourFtForm from '@/routes/4ftminer/FourFtForm.tsx';
 import { Dataset, useGetDatasets } from '@/api/dataset.ts';
 import { useCreateFourFt } from '@/api/fourft.ts';
 import FourFtResults from '@/routes/4ftminer/FourFtResults.tsx';
+import { Form } from '@/components/ui/form.tsx';
 
 const fourftSchema = z.object({
   base: IntMandatory(1, 1000000),
   confidence: FloatMandatory(0.001, 1),
-  // antecedentName: StringMandatory(256),
-  // succedentName: StringMandatory(256),
+  antecedentName: ComboboxStringMandatory(),
+  succedentName: ComboboxStringMandatory(),
   // antecedentName: z.array(z.object(
   //     {
   //         name: StringMandatory(256),
@@ -32,6 +34,8 @@ const fourftSchema = z.object({
 const fourftDefaultValues = {
   base: '',
   confidence: '',
+  antecedentName: '',
+  succedentName: '',
 } satisfies FourFtSchemaT;
 
 export type FourFtSchemaT = z.infer<typeof fourftSchema>;
@@ -51,30 +55,19 @@ export type ComboboxState = {
   errorMessage: string | undefined;
 };
 
-const initialComboboxState: ComboboxState = {
-  value: undefined,
-  errorMessage: undefined,
-};
-
 export default function FourFtMiner() {
   const [currentDatasetState, setCurrentDatasetState] = useState<DatasetState>(initialDatasetState);
-  const [currentAntecedentName, setCurrentAntecedentName] =
-    useState<ComboboxState>(initialComboboxState);
-  const [currentSuccedentName, setCurrentSuccedentName] =
-    useState<ComboboxState>(initialComboboxState);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useZodForm({
+  const form = useZodForm({
     schema: fourftSchema,
     defaultValues: fourftDefaultValues,
     mode: 'onSubmit',
   });
 
+  const antecedentName = form.watch('antecedentName');
+  const succedentName = form.watch('succedentName');
+
   const onSubmit = async (data: FourFtSchemaT) => {
-    console.log(data);
     const dataset = currentDatasetState;
     if (dataset.value === undefined) {
       setCurrentDatasetState((prevState) => {
@@ -85,29 +78,9 @@ export default function FourFtMiner() {
       });
       return;
     }
-    if (currentAntecedentName.value === undefined) {
-      setCurrentAntecedentName((prevState) => {
-        return {
-          ...prevState,
-          errorMessage: 'Please select an antecedent name',
-        };
-      });
-      return;
-    }
-    if (currentSuccedentName.value === undefined) {
-      setCurrentSuccedentName((prevState) => {
-        return {
-          ...prevState,
-          errorMessage: 'Please select a succedent name',
-        };
-      });
-      return;
-    }
 
     processFourFtRequestMutation.mutate({
       dataset_id: dataset.value.id.toString(),
-      antecedentName: currentAntecedentName.value,
-      succedentName: currentSuccedentName.value,
       ...data,
     });
   };
@@ -123,21 +96,24 @@ export default function FourFtMiner() {
     <div className={'flex flex-col w-full h-full'}>
       <FourFtHeading />
       <div className={'flex w-full h-full'}>
-        <FourFtForm
-          onSubmit={onSubmit}
-          handleSubmit={handleSubmit}
-          register={register}
-          errors={errors}
-          datasets={datasets}
-          setCurrentDataset={setCurrentDatasetState}
-          setCurrentAntecedentName={setCurrentAntecedentName}
-          setCurrentSuccedentName={setCurrentSuccedentName}
-          currentAntecedentName={currentAntecedentName}
-          currentSuccedentName={currentSuccedentName}
-          currentDataset={currentDatasetState}
-          isLoading={processFourFtRequestMutation.isPending}
-          datasetsLoading={datasetsLoading}
-        />
+        <Form {...form}>
+          <FourFtForm
+            onSubmit={onSubmit}
+            handleSubmit={form.handleSubmit}
+            register={form.register}
+            errors={form.formState.errors}
+            control={form.control}
+            setValue={form.setValue}
+            clearErrors={form.clearErrors}
+            datasets={datasets}
+            setCurrentDataset={setCurrentDatasetState}
+            currentDataset={currentDatasetState}
+            isLoading={processFourFtRequestMutation.isPending}
+            datasetsLoading={datasetsLoading}
+            antecedentName={antecedentName}
+            succedentName={succedentName}
+          />
+        </Form>
         <FourFtResults
           rules={processFourFtRequestMutation.data}
           isLoading={processFourFtRequestMutation.isPending}
