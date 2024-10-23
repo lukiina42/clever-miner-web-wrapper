@@ -10,22 +10,21 @@ import {
   UseFormHandleSubmit,
   UseFormRegister,
   UseFormSetValue,
+  useFieldArray,
 } from 'react-hook-form';
 import { Dataset } from '@/api/dataset.ts';
 import { DatasetState, FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
 import { ComboboxWrapper } from '@/components/form/ComboboxWrapper.tsx';
-import { ComboboxHookFormWrapper } from '@/components/form/ComboboxHookFormWrapper';
+import AnteSucceWrapper from './AnteSucceWrapper';
 
 interface Props<T extends FieldValues> {
   onSubmit: (data: T) => void;
-  handleSubmit: UseFormHandleSubmit<FieldValues>;
+  handleSubmit: UseFormHandleSubmit<T>;
   register: UseFormRegister<T>;
   errors: FieldErrors<T>;
   datasets: Dataset[];
   currentDataset: DatasetState;
   setCurrentDataset: React.Dispatch<SetStateAction<DatasetState>>;
-  antecedentName: string;
-  succedentName: string;
   isLoading: boolean;
   datasetsLoading: boolean;
   control: Control<T>;
@@ -40,24 +39,42 @@ export default function FourFtForm({
   errors,
   datasets,
   setCurrentDataset,
-  succedentName,
-  antecedentName,
   currentDataset,
   isLoading,
   datasetsLoading,
   control,
   setValue,
-  clearErrors
+  clearErrors,
 }: Props<FourFtSchemaT> & { handleSubmit: UseFormHandleSubmit<FourFtSchemaT> }) {
   const datasetHeaderNames = useMemo(() => {
     const headerNames = currentDataset?.value?.header_names ?? [];
     return headerNames.map((headerName) => ({ id: headerName, name: headerName }));
   }, [currentDataset]);
 
+  const {
+    fields: antecedentFields,
+    append: appendAntecedent,
+    remove: removeAntecedent,
+  } = useFieldArray({
+    name: 'antecedent',
+    control,
+  });
+
+  const {
+    fields: succedentFields,
+    append: appendSuccedent,
+    remove: removesuccedent,
+  } = useFieldArray({
+    name: 'succedent',
+    control,
+  });
+
+  console.log(errors);
+
   return (
     <div className={'h-full px-4 pt-4 border-r-2 border-gray-200 w-fit'}>
       <form
-        className={'flex flex-col gap-2 items-start w-[300px]'}
+        className={'flex flex-col gap-2 items-start w-[350px]'}
         onSubmit={handleSubmit(onSubmit)}
       >
         <div className={'text-lg font-bold'}>Configure options</div>
@@ -75,51 +92,51 @@ export default function FourFtForm({
           errorMessage={currentDataset.errorMessage}
           disabled={datasetsLoading}
         />
-        <div className={'w-full'}>
+        <div className={'w-[300px]'}>
           <Label htmlFor="base">Base</Label>
           <TextInputField
             {...register('base')}
             placeholder={'1000'}
-            errorMessage={errors?.base?.message}
+            errorMessage={errors?.base?.message as string | undefined}
           />
         </div>
-        <div className={'w-full'}>
+        <div className={'w-[300px]'}>
           <Label htmlFor="confidence">Confidence</Label>
           <TextInputField
             {...register('confidence')}
             placeholder={'0.6'}
-            errorMessage={errors?.confidence?.message}
+            errorMessage={errors?.confidence?.message as string | undefined}
           />
         </div>
-        <ComboboxHookFormWrapper
-          optionName={'antecedent Name'}
-          label={'Antecedent name'}
-          isLoading={datasetsLoading}
-          options={datasetHeaderNames}
-          onValueChange={(value) => {
-            setValue('antecedentName', value.name);
-            clearErrors('antecedentName')
-          }}
-          disabled={currentDataset.value === undefined}
-          value={antecedentName}
+        <AnteSucceWrapper
+          fieldName={'antecedent'}
+          append={appendAntecedent}
+          remove={removeAntecedent}
+          fields={antecedentFields}
+          errors={errors}
+          register={register}
+          fieldsLength={antecedentFields.length}
+          clearErrors={clearErrors}
+          setValue={setValue}
           control={control}
-          error={errors.antecedentName}
-          {...register('antecedentName')}
+          loading={datasetsLoading}
+          options={datasetHeaderNames}
+          disabled={currentDataset.value === undefined}
         />
-        <ComboboxHookFormWrapper
-          optionName={'succedent name'}
-          label={'Succedent name'}
-          isLoading={datasetsLoading}
-          options={datasetHeaderNames}
-          onValueChange={(value) => {
-            setValue('succedentName', value.name);
-            clearErrors('succedentName')
-          }}
-          value={succedentName}
+        <AnteSucceWrapper
+          fieldName={'succedent'}
+          append={appendSuccedent}
+          remove={removesuccedent}
+          fields={succedentFields}
+          errors={errors}
+          register={register}
+          fieldsLength={succedentFields.length}
+          clearErrors={clearErrors}
+          setValue={setValue}
           control={control}
-          error={errors.succedentName}
+          loading={datasetsLoading}
+          options={datasetHeaderNames}
           disabled={currentDataset.value === undefined}
-          {...register('succedentName')}
         />
         <Button disabled={isLoading} type={'submit'} className={'mt-2 self-end'}>
           Submit

@@ -1,10 +1,10 @@
 import { Label } from '@/components/ui/label.tsx';
 import FormErrorMessage from '@/components/form/FormErrorMessage.tsx';
-import { Control, FieldError, FieldValues, UseFormSetValue } from 'react-hook-form';
+import { Control, FieldError, FieldValues } from 'react-hook-form';
 import { FormField, FormItem } from '@/components/ui/form.tsx';
 import { ComboboxHookForm } from './ComboboxHookForm';
 
-interface Value {
+export interface Value {
   id: string;
   name: string;
 }
@@ -18,8 +18,6 @@ interface Props {
   label: string;
   error: FieldError | undefined;
   disabled?: boolean;
-  setValue: UseFormSetValue<FieldValues>;
-  value: string;
   control: Control<FieldValues>;
 }
 

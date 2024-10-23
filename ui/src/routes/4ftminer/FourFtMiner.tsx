@@ -6,6 +6,7 @@ import {
   ComboboxStringMandatory,
   FloatMandatory,
   IntMandatory,
+  StringOptional,
 } from '@/components/form/formValidationTypes.ts';
 import FourFtHeading from '@/routes/4ftminer/FourFtHeading.tsx';
 import FourFtForm from '@/routes/4ftminer/FourFtForm.tsx';
@@ -17,25 +18,25 @@ import { Form } from '@/components/ui/form.tsx';
 const fourftSchema = z.object({
   base: IntMandatory(1, 1000000),
   confidence: FloatMandatory(0.001, 1),
-  antecedentName: ComboboxStringMandatory(),
-  succedentName: ComboboxStringMandatory(),
-  // antecedentName: z.array(z.object(
-  //     {
-  //         name: StringMandatory(256),
-  //     }
-  // )),
-  // succedentName: z.array(z.object(
-  //     {
-  //         name: StringMandatory(256),
-  //     }
-  // )),
+  antecedent: z.array(z.object({ name: ComboboxStringMandatory(), id: StringOptional(128) })),
+  succedent: z.array(z.object({ name: ComboboxStringMandatory(), id: StringOptional(128) })),
 });
 
 const fourftDefaultValues = {
   base: '',
   confidence: '',
-  antecedentName: '',
-  succedentName: '',
+  antecedent: [
+    {
+      name: '',
+      id: '',
+    },
+  ],
+  succedent: [
+    {
+      name: '',
+      id: '',
+    },
+  ],
 } satisfies FourFtSchemaT;
 
 export type FourFtSchemaT = z.infer<typeof fourftSchema>;
@@ -50,11 +51,6 @@ const initialDatasetState: DatasetState = {
   errorMessage: undefined,
 };
 
-export type ComboboxState = {
-  value: string | undefined;
-  errorMessage: string | undefined;
-};
-
 export default function FourFtMiner() {
   const [currentDatasetState, setCurrentDatasetState] = useState<DatasetState>(initialDatasetState);
 
@@ -63,9 +59,6 @@ export default function FourFtMiner() {
     defaultValues: fourftDefaultValues,
     mode: 'onSubmit',
   });
-
-  const antecedentName = form.watch('antecedentName');
-  const succedentName = form.watch('succedentName');
 
   const onSubmit = async (data: FourFtSchemaT) => {
     const dataset = currentDatasetState;
@@ -79,10 +72,12 @@ export default function FourFtMiner() {
       return;
     }
 
-    processFourFtRequestMutation.mutate({
-      dataset_id: dataset.value.id.toString(),
-      ...data,
-    });
+    console.log(data);
+
+    // processFourFtRequestMutation.mutate({
+    //   dataset_id: dataset.value.id.toString(),
+    //   ...data,
+    // });
   };
 
   const processFourFtRequestMutation = useCreateFourFt();
@@ -110,8 +105,6 @@ export default function FourFtMiner() {
             currentDataset={currentDatasetState}
             isLoading={processFourFtRequestMutation.isPending}
             datasetsLoading={datasetsLoading}
-            antecedentName={antecedentName}
-            succedentName={succedentName}
           />
         </Form>
         <FourFtResults
