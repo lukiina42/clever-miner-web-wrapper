@@ -53,10 +53,23 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj):
         return create_presigned_url(settings.AWS_STORAGE_BUCKET_NAME, obj.s3_key)
+    
+
+class AnteSucceSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=256)
+    type = serializers.CharField(max_length=256)
+    minLen = serializers.IntegerField(min_value=1)
+    maxLen = serializers.IntegerField(min_value=1)
 
 class FourFtMinerSerializer(serializers.Serializer):
     dataset_id = serializers.IntegerField()
     base = serializers.IntegerField(min_value=1, max_value=1000000)
     confidence = serializers.FloatField(min_value=0.1, max_value=1)
-    antecedentName = serializers.CharField(max_length=256)
-    succedentName = serializers.CharField(max_length=256)
+    anteMinLen = serializers.IntegerField(min_value=1, max_value=128)
+    anteMaxLen = serializers.IntegerField(min_value=1, max_value=128)
+    succeMinLen = serializers.IntegerField(min_value=1, max_value=128)
+    succeMaxLen = serializers.IntegerField(min_value=1, max_value=128)
+    conDisAntecedentType = serializers.CharField(max_length=256)
+    conDisSuccedentType = serializers.CharField(max_length=256)
+    antecedent = AnteSucceSerializer(many=True)
+    succedent = AnteSucceSerializer(many=True)

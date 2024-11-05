@@ -37,7 +37,7 @@ export function ComboboxHookFormWrapper({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="flex flex-col gap-1">
+        <FormItem className="relative flex flex-col gap-1">
           <Label htmlFor={optionName}>{label}</Label>
           <ComboboxHookForm
             options={options}
@@ -47,7 +47,9 @@ export function ComboboxHookFormWrapper({
             disabled={disabled}
             value={field.value}
           />
-          {error?.message !== undefined && <FormErrorMessage errorMessage={error.message} />}
+          {error?.message !== undefined && (
+            <FormErrorMessage className="top-14" errorMessage={error.message} />
+          )}
         </FormItem>
       )}
     />

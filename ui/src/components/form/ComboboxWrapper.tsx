@@ -27,7 +27,7 @@ export function ComboboxWrapper({
   disabled = false,
 }: Props) {
   return (
-    <div className={'flex flex-col gap-1'}>
+    <div className={'relative flex flex-col gap-1 justify-end'}>
       <Label htmlFor={optionName}>{label}</Label>
       <Combobox
         options={options}
@@ -38,7 +38,9 @@ export function ComboboxWrapper({
         errorMessage={errorMessage}
         disabled={disabled}
       />
-      {errorMessage !== undefined && <FormErrorMessage errorMessage={errorMessage} />}
+      {errorMessage !== undefined && (
+        <FormErrorMessage className="top-[-4rem]" errorMessage={errorMessage} />
+      )}
     </div>
   );
 }

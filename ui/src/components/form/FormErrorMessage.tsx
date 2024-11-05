@@ -9,7 +9,9 @@ type Props = {
 
 export default function FormErrorMessage({ errorMessage, className }: Props) {
   return (
-    <span className={clsxm('px-1 text-xs font-medium text-red-500', className)}>
+    <span
+      className={clsxm('absolute left-0 top-11 px-1 text-xs font-medium text-red-500', className)}
+    >
       {errorMessage}
     </span>
   );

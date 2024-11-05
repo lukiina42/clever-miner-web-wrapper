@@ -70,11 +70,9 @@ export function Combobox({
                     key={option.id}
                     value={option.id}
                     onSelect={(currentValue) => {
-                      console.log(currentValue, options);
                       const correspondingOption = options?.find(
                         (option) => option.id === currentValue
                       );
-                      console.log(correspondingOption);
                       setValue(correspondingOption?.name ?? '');
                       if (!correspondingOption) return;
                       onValueChange(correspondingOption);

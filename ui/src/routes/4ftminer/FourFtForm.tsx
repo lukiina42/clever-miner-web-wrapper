@@ -13,9 +13,10 @@ import {
   useFieldArray,
 } from 'react-hook-form';
 import { Dataset } from '@/api/dataset.ts';
-import { DatasetState, FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
+import { DatasetState, FourFtSchemaT, anteSucceDefault } from '@/routes/4ftminer/FourFtMiner.tsx';
 import { ComboboxWrapper } from '@/components/form/ComboboxWrapper.tsx';
 import AnteSucceWrapper from './AnteSucceWrapper';
+import AnteSucceBaseParameters from './AnteSucceBaseParameters';
 
 interface Props<T extends FieldValues> {
   onSubmit: (data: T) => void;
@@ -69,75 +70,90 @@ export default function FourFtForm({
     control,
   });
 
-  console.log(errors);
-
   return (
-    <div className={'h-full px-4 pt-4 border-r-2 border-gray-200 w-fit'}>
-      <form
-        className={'flex flex-col gap-2 items-start w-[350px]'}
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className={'text-lg font-bold'}>Configure options</div>
-        <ComboboxWrapper
-          optionName={'dataset'}
-          label={'Dataset'}
-          isLoading={datasetsLoading}
-          options={datasets}
-          onValueChange={(value) =>
-            setCurrentDataset({
-              value: datasets.find((dataset) => value.id === dataset.id),
-              errorMessage: undefined,
-            })
-          }
-          errorMessage={currentDataset.errorMessage}
-          disabled={datasetsLoading}
-        />
-        <div className={'w-[300px]'}>
-          <Label htmlFor="base">Base</Label>
-          <TextInputField
-            {...register('base')}
-            placeholder={'1000'}
-            errorMessage={errors?.base?.message as string | undefined}
+    <div className={'h-full pt-4 border-gray-200'}>
+      <form className={'px-4 flex flex-col items-start w-full'} onSubmit={handleSubmit(onSubmit)}>
+        <div className={'text-lg font-bold'}>Configure basic options</div>
+        <div className="flex gap-4 p-4">
+          <ComboboxWrapper
+            optionName={'dataset'}
+            label={'Dataset'}
+            isLoading={datasetsLoading}
+            options={datasets}
+            onValueChange={(value) =>
+              setCurrentDataset({
+                value: datasets.find((dataset) => value.id === dataset.id),
+                errorMessage: undefined,
+              })
+            }
+            errorMessage={currentDataset.errorMessage}
+            disabled={datasetsLoading}
           />
+          <div className={'w-[300px]'}>
+            <Label htmlFor="base">Base</Label>
+            <TextInputField
+              {...register('base')}
+              errorMessage={errors?.base?.message as string | undefined}
+            />
+          </div>
+          <div className={'w-[300px]'}>
+            <Label htmlFor="confidence">Confidence</Label>
+            <TextInputField
+              {...register('confidence')}
+              errorMessage={errors?.confidence?.message as string | undefined}
+            />
+          </div>
         </div>
-        <div className={'w-[300px]'}>
-          <Label htmlFor="confidence">Confidence</Label>
-          <TextInputField
-            {...register('confidence')}
-            placeholder={'0.6'}
-            errorMessage={errors?.confidence?.message as string | undefined}
+        <div className={'text-lg font-bold'}>Configure antecedents</div>
+        <div className="flex flex-col gap-6 p-4">
+          <AnteSucceBaseParameters fieldName="antecedent" register={register} errors={errors} />
+          <div className="w-full border-2 rounded-xl"></div>
+          <AnteSucceWrapper
+            fieldName={'antecedent'}
+            remove={removeAntecedent}
+            fields={antecedentFields}
+            errors={errors}
+            register={register}
+            clearErrors={clearErrors}
+            setValue={setValue}
+            control={control}
+            loading={datasetsLoading}
+            options={datasetHeaderNames}
+            disabled={currentDataset.value === undefined}
           />
+          <Button
+            type="button"
+            onClick={() => appendAntecedent(anteSucceDefault)}
+            className="cursor-pointer bg-blue-400 hover:bg-blue-500 w-40"
+          >
+            <b>+</b> Add antecedent
+          </Button>
         </div>
-        <AnteSucceWrapper
-          fieldName={'antecedent'}
-          append={appendAntecedent}
-          remove={removeAntecedent}
-          fields={antecedentFields}
-          errors={errors}
-          register={register}
-          fieldsLength={antecedentFields.length}
-          clearErrors={clearErrors}
-          setValue={setValue}
-          control={control}
-          loading={datasetsLoading}
-          options={datasetHeaderNames}
-          disabled={currentDataset.value === undefined}
-        />
-        <AnteSucceWrapper
-          fieldName={'succedent'}
-          append={appendSuccedent}
-          remove={removesuccedent}
-          fields={succedentFields}
-          errors={errors}
-          register={register}
-          fieldsLength={succedentFields.length}
-          clearErrors={clearErrors}
-          setValue={setValue}
-          control={control}
-          loading={datasetsLoading}
-          options={datasetHeaderNames}
-          disabled={currentDataset.value === undefined}
-        />
+        <div className={'text-lg font-bold'}>Configure succedents</div>
+        <div className="flex flex-col gap-6 p-4">
+          <AnteSucceBaseParameters fieldName="succedent" register={register} errors={errors} />
+          <div className="w-full border-2 rounded-xl"></div>
+          <AnteSucceWrapper
+            fieldName={'succedent'}
+            remove={removesuccedent}
+            fields={succedentFields}
+            errors={errors}
+            register={register}
+            clearErrors={clearErrors}
+            setValue={setValue}
+            control={control}
+            loading={datasetsLoading}
+            options={datasetHeaderNames}
+            disabled={currentDataset.value === undefined}
+          />
+          <Button
+            type="button"
+            onClick={() => appendSuccedent(anteSucceDefault)}
+            className="cursor-pointer bg-blue-400 hover:bg-blue-500 w-40"
+          >
+            <b>+</b> Add succedent
+          </Button>
+        </div>
         <Button disabled={isLoading} type={'submit'} className={'mt-2 self-end'}>
           Submit
         </Button>

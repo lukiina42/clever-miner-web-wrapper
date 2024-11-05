@@ -48,8 +48,34 @@ class FourFtMinerView(APIView):
             dataset_id = validated_data['dataset_id']
             base = validated_data['base']
             confidence = validated_data['confidence']
-            antecedent_name = validated_data['antecedentName']
-            succedent_name = validated_data['succedentName']
+            antecedents = validated_data.get('antecedent', [])
+            succedents = validated_data.get('succedent', [])
+            ante_min_len = validated_data.get('anteMinLen')
+            ante_max_len = validated_data.get('anteMaxLen')
+            succe_min_len = validated_data.get('succeMinLen')
+            succe_max_len = validated_data.get('succeMaxLen')
+            con_dis_antecedent_type = validated_data.get('conDisAntecedentType')
+            con_dis_succedent_type = validated_data.get('conDisSuccedentType')
+
+            antecedent_attributes = [
+                {
+                    'name': antecedent['name'],
+                    'type': antecedent['type'],
+                    'minlen': antecedent['minLen'],
+                    'maxlen': antecedent['maxLen']
+                }
+                for antecedent in antecedents
+            ]
+            
+            succedent_attributes = [
+                {
+                    'name': succedent['name'],
+                    'type': succedent['type'],
+                    'minlen': succedent['minLen'],
+                    'maxlen': succedent['maxLen']
+                }
+                for succedent in succedents
+            ]
 
             # Fetch the dataset by dataset_id
             try:
@@ -61,17 +87,17 @@ class FourFtMinerView(APIView):
             signed_url = DatasetSerializer(dataset).get_url(dataset)
             file = pd.read_csv(signed_url, encoding='cp1250', sep=', ')
 
-            clm = cleverminer(df=file, proc='4ftMiner',
-                              quantifiers={'conf': confidence, 'Base': base},
-                              ante={
-                                  'attributes': [
-                                      {'name': antecedent_name, 'type': 'subset', 'minlen': 1, 'maxlen': 1}
-                                  ], 'minlen': 1, 'maxlen': 1, 'type': 'con'},
-                              succ={
-                                  'attributes': [
-                                      {'name': succedent_name, 'type': 'subset', 'minlen': 1, 'maxlen': 1}
-                                  ], 'minlen': 1, 'maxlen': 1, 'type': 'con'}
-                              )
+            clm = cleverminer(
+                df=file, 
+                proc='4ftMiner',
+                quantifiers={'conf': confidence, 'Base': base},
+                ante={
+                    'attributes': antecedent_attributes, 'minlen': ante_min_len, 'maxlen': ante_max_len, 'type': con_dis_antecedent_type
+                },
+                succ={
+                    'attributes': succedent_attributes, 'minlen': succe_min_len, 'maxlen': succe_max_len, 'type': con_dis_succedent_type
+                }
+            )
 
             return Response(clm.rulelist, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

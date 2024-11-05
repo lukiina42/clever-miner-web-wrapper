@@ -10,8 +10,6 @@ export const useCreateFourFt = () =>
     mutationFn: async (
       data: FourFtSchemaT & {
         dataset_id: string;
-        antecedentName: string;
-        succedentName: string;
       }
     ) => {
       const stringifiedData = JSON.stringify(data);
