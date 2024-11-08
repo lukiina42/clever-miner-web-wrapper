@@ -68,11 +68,9 @@ const numberToDecimalPlaces = (num: number, decimalPlaces: number) => {
 
 export default function FourFtResults({ rules, isLoading }: Props) {
   return (
-    <div className={'grow flex flex-wrap'}>
+    <div className={'grow flex flex-wrap p-8'}>
       {isLoading && <h1>Loading...</h1>}
-      {!isLoading && rules === undefined && (
-        <div className={'text-2xl'}>Fill out the form on the left!</div>
-      )}
+      {!isLoading && rules === undefined && null}
       {!isLoading && rules?.length === 0 && <div className={'text-2xl'}>No rules found!</div>}
       {rules !== undefined &&
         rules.map((rule) => (

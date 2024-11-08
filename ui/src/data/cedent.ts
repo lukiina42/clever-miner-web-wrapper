@@ -7,6 +7,14 @@ export const CedentType = {
   Null: null as unknown as string,
 };
 
+export const anteSucceDefault = {
+  name: '',
+  id: '',
+  minLen: '',
+  maxLen: '',
+  type: CedentType.Null,
+};
+
 const getCedentTypeLabel = (value: string | null) => {
   let result;
   switch (value) {

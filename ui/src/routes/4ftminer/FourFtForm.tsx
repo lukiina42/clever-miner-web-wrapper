@@ -13,10 +13,12 @@ import {
   useFieldArray,
 } from 'react-hook-form';
 import { Dataset } from '@/api/dataset.ts';
-import { DatasetState, FourFtSchemaT, anteSucceDefault } from '@/routes/4ftminer/FourFtMiner.tsx';
+import { DatasetState, FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
 import { ComboboxWrapper } from '@/components/form/ComboboxWrapper.tsx';
 import AnteSucceWrapper from './AnteSucceWrapper';
 import AnteSucceBaseParameters from './AnteSucceBaseParameters';
+import { Value } from '@/components/form/ComboboxHookFormWrapper.tsx';
+import { anteSucceDefault } from '@/data/cedent.ts';
 
 interface Props<T extends FieldValues> {
   onSubmit: (data: T) => void;
@@ -64,28 +66,37 @@ export default function FourFtForm({
   const {
     fields: succedentFields,
     append: appendSuccedent,
-    remove: removesuccedent,
+    remove: removeSuccedent,
   } = useFieldArray({
     name: 'succedent',
     control,
   });
 
+  const onDatasetChange = (value: Value) => {
+    setCurrentDataset({
+      value: datasets.find((dataset) => value.id === dataset.id),
+      errorMessage: undefined,
+    });
+    setValue('antecedent', [anteSucceDefault]);
+    setValue('succedent', [anteSucceDefault]);
+  };
+
   return (
     <div className={'h-full pt-4 border-gray-200'}>
       <form className={'px-4 flex flex-col items-start w-full'} onSubmit={handleSubmit(onSubmit)}>
-        <div className={'text-lg font-bold'}>Configure basic options</div>
+        <div className={'w-full flex justify-between'}>
+          <div className={'text-lg font-bold'}>Configure basic options</div>
+          <Button disabled={isLoading} type={'submit'} className={'mt-2 self-end bg-green-500'}>
+            Submit 4FT parameters
+          </Button>
+        </div>
         <div className="flex gap-4 p-4">
           <ComboboxWrapper
             optionName={'dataset'}
             label={'Dataset'}
             isLoading={datasetsLoading}
             options={datasets}
-            onValueChange={(value) =>
-              setCurrentDataset({
-                value: datasets.find((dataset) => value.id === dataset.id),
-                errorMessage: undefined,
-              })
-            }
+            onValueChange={onDatasetChange}
             errorMessage={currentDataset.errorMessage}
             disabled={datasetsLoading}
           />
@@ -124,7 +135,7 @@ export default function FourFtForm({
           <Button
             type="button"
             onClick={() => appendAntecedent(anteSucceDefault)}
-            className="cursor-pointer bg-blue-400 hover:bg-blue-500 w-40"
+            className="cursor-pointer bg-black hover:bg-blue-500 w-40"
           >
             <b>+</b> Add antecedent
           </Button>
@@ -135,7 +146,7 @@ export default function FourFtForm({
           <div className="w-full border-2 rounded-xl"></div>
           <AnteSucceWrapper
             fieldName={'succedent'}
-            remove={removesuccedent}
+            remove={removeSuccedent}
             fields={succedentFields}
             errors={errors}
             register={register}
@@ -149,14 +160,11 @@ export default function FourFtForm({
           <Button
             type="button"
             onClick={() => appendSuccedent(anteSucceDefault)}
-            className="cursor-pointer bg-blue-400 hover:bg-blue-500 w-40"
+            className="cursor-pointer bg-black hover:bg-blue-500 w-40"
           >
             <b>+</b> Add succedent
           </Button>
         </div>
-        <Button disabled={isLoading} type={'submit'} className={'mt-2 self-end'}>
-          Submit
-        </Button>
       </form>
     </div>
   );

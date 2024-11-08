@@ -14,7 +14,7 @@ import { Dataset, useGetDatasets } from '@/api/dataset.ts';
 import { useCreateFourFt } from '@/api/fourft.ts';
 import FourFtResults from '@/routes/4ftminer/FourFtResults.tsx';
 import { Form } from '@/components/ui/form.tsx';
-import { CedentConDisType, CedentType } from '@/data/cedent';
+import { anteSucceDefault, CedentConDisType, CedentType } from '@/data/cedent';
 
 const cedentZodObject = z.object({
   name: ComboboxStringMandatory(),
@@ -42,14 +42,6 @@ const fourftSchema = z.object({
   antecedent: z.array(cedentZodObject),
   succedent: z.array(cedentZodObject),
 });
-
-export const anteSucceDefault = {
-  name: '',
-  id: '',
-  minLen: '',
-  maxLen: '',
-  type: CedentType.Null,
-};
 
 const fourftDefaultValues = {
   base: '',
