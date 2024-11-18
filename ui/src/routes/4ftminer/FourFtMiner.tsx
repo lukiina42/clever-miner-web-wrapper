@@ -15,6 +15,12 @@ import { useCreateFourFt } from '@/api/fourft.ts';
 import FourFtResults from '@/routes/4ftminer/FourFtResults.tsx';
 import { Form } from '@/components/ui/form.tsx';
 import { anteSucceDefault, CedentConDisType, CedentType } from '@/data/cedent';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible.tsx';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const cedentZodObject = z.object({
   name: ComboboxStringMandatory(),
@@ -71,6 +77,8 @@ const initialDatasetState: DatasetState = {
 export default function FourFtMiner() {
   const [currentDatasetState, setCurrentDatasetState] = useState<DatasetState>(initialDatasetState);
 
+  const [formIsOpen, setFormIsOpen] = useState(true);
+
   const form = useZodForm({
     schema: fourftSchema,
     defaultValues: fourftDefaultValues,
@@ -93,6 +101,8 @@ export default function FourFtMiner() {
       dataset_id: dataset.value.id.toString(),
       ...data,
     });
+
+    setFormIsOpen(false);
   };
 
   const processFourFtRequestMutation = useCreateFourFt();
@@ -105,24 +115,38 @@ export default function FourFtMiner() {
   return (
     <div className={'flex flex-col w-full h-full'}>
       <FourFtHeading />
-      <div className={'w-full'}>
-        <Form {...form}>
-          <FourFtForm
-            onSubmit={onSubmit}
-            handleSubmit={form.handleSubmit}
-            register={form.register}
-            errors={form.formState.errors}
-            control={form.control}
-            setValue={form.setValue}
-            clearErrors={form.clearErrors}
-            datasets={datasets}
-            setCurrentDataset={setCurrentDatasetState}
-            currentDataset={currentDatasetState}
-            isLoading={processFourFtRequestMutation.isPending}
-            datasetsLoading={datasetsLoading}
-          />
-        </Form>
-      </div>
+      <Collapsible open={formIsOpen} onOpenChange={setFormIsOpen} className="w-full relative">
+        {!formIsOpen && (
+          <div className="flex pl-8 pt-8 items-center mb-2">
+            <div className="text-xl font-semibold">Four FT parameters Form</div>
+          </div>
+        )}
+        <CollapsibleContent className="w-full">
+          <Form {...form}>
+            <FourFtForm
+              onSubmit={onSubmit}
+              handleSubmit={form.handleSubmit}
+              register={form.register}
+              errors={form.formState.errors}
+              control={form.control}
+              setValue={form.setValue}
+              clearErrors={form.clearErrors}
+              datasets={datasets}
+              setCurrentDataset={setCurrentDatasetState}
+              currentDataset={currentDatasetState}
+              isLoading={processFourFtRequestMutation.isPending}
+              datasetsLoading={datasetsLoading}
+            />
+          </Form>
+        </CollapsibleContent>
+        <CollapsibleTrigger
+          className={`absolute right-[2rem] w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+            formIsOpen ? 'bottom-0' : 'bottom-[0]'
+          }`}
+        >
+          {formIsOpen ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
+        </CollapsibleTrigger>
+      </Collapsible>
       <FourFtResults
         rules={processFourFtRequestMutation.data}
         isLoading={processFourFtRequestMutation.isPending}
