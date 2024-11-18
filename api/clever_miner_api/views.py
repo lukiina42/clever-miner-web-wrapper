@@ -99,5 +99,11 @@ class FourFtMinerView(APIView):
                 }
             )
 
-            return Response(clm.rulelist, status=status.HTTP_200_OK)
+            rulelist = clm.rulelist
+            for rule in rulelist:
+                rule['ruletext'] = clm.get_ruletext(rule['rule_id'])
+
+            print(rulelist)
+
+            return Response(rulelist, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
