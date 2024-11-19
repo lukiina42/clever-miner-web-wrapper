@@ -10,9 +10,9 @@ export const CedentType = {
 export const anteSucceDefault = {
   name: '',
   id: '',
-  minLen: '',
-  maxLen: '',
-  type: CedentType.Null,
+  minLen: '1',
+  maxLen: '1',
+  type: CedentType.Subset,
 };
 
 const getCedentTypeLabel = (value: string | null) => {

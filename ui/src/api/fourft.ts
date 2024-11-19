@@ -13,19 +13,25 @@ export const useCreateFourFt = () =>
       }
     ) => {
       const stringifiedData = JSON.stringify(data);
-      const result = await fetch(fourFtApiUrl, {
+      const response = await fetch(fourFtApiUrl, {
         method: 'POST',
         body: stringifiedData,
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      return (await result.json()) as Promise<Rule[]>;
+      //todo error handling, error boundary
+      if (response.status === 400) {
+        throw new Error('Invalid data from the user');
+      }
+      if (response.status === 500) {
+        throw new Error('Internal server error');
+      }
+      return (await response.json()) as Rule[];
     },
-    onSuccess: async (data) => {
-      console.log(data);
-    },
+    onSuccess: async () => {},
     onError: (error) => {
       console.error(error);
+      throw error;
     },
   });

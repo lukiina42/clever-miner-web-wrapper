@@ -23,8 +23,7 @@ interface Props {
   onValueChange: (value: Value) => void;
   optionName: string;
   isLoading: boolean;
-  label: string;
-  errorMessage: string | undefined;
+  value: Value | undefined;
   disabled?: boolean;
 }
 
@@ -33,10 +32,10 @@ export function Combobox({
   onValueChange,
   optionName,
   isLoading,
+  value,
   disabled = false,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState('');
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -48,8 +47,8 @@ export function Combobox({
           className="w-[300px] justify-between"
           disabled={disabled}
         >
-          {value
-            ? options?.find((option) => option.name === value)?.name
+          {value !== undefined
+            ? options?.find((option) => option.name === value.name)?.name
             : `Select ${optionName}...`}
           {isLoading ? (
             <LoadingSpinner className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -73,7 +72,6 @@ export function Combobox({
                       const correspondingOption = options?.find(
                         (option) => option.id === currentValue
                       );
-                      setValue(correspondingOption?.name ?? '');
                       if (!correspondingOption) return;
                       onValueChange(correspondingOption);
                       setOpen(false);
@@ -83,7 +81,7 @@ export function Combobox({
                     <Check
                       className={cn(
                         'mr-2 h-4 w-4',
-                        value === option.id ? 'opacity-100' : 'opacity-0'
+                        value?.name === option.id ? 'opacity-100' : 'opacity-0'
                       )}
                     />
                     {option.name}

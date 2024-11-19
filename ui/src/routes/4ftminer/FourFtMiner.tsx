@@ -4,8 +4,9 @@ import useZodForm from '@/components/form/useZodForm.ts';
 import { useState } from 'react';
 import {
   ComboboxStringMandatory,
-  FloatMandatory,
+  FloatOptional,
   IntMandatory,
+  IntOptional,
   StringOptional,
 } from '@/components/form/formValidationTypes.ts';
 import FourFtHeading from '@/routes/4ftminer/FourFtHeading.tsx';
@@ -20,7 +21,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible.tsx';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { allQuantifierFields } from '@/data/quantifier.ts';
+import clsxm from '@/utils/clsxm.ts';
 
 const cedentZodObject = z.object({
   name: ComboboxStringMandatory(),
@@ -33,8 +36,10 @@ const cedentZodObject = z.object({
 });
 
 const fourftSchema = z.object({
-  base: IntMandatory(1, 1000000),
-  confidence: FloatMandatory(0.001, 1),
+  base: IntOptional(1, 1000000),
+  relbase: FloatOptional(0.001, 1),
+  confidence: FloatOptional(0.001, 1),
+  aad: FloatOptional(0.001, 1),
   anteMinLen: IntMandatory(1, 64),
   anteMaxLen: IntMandatory(1, 64),
   succeMinLen: IntMandatory(1, 64),
@@ -51,13 +56,15 @@ const fourftSchema = z.object({
 
 const fourftDefaultValues = {
   base: '',
+  relbase: '',
   confidence: '',
-  anteMaxLen: '',
-  anteMinLen: '',
-  succeMaxLen: '',
-  succeMinLen: '',
-  conDisAntecedentType: CedentConDisType.Null,
-  conDisSuccedentType: CedentConDisType.Null,
+  aad: '',
+  anteMaxLen: '1',
+  anteMinLen: '1',
+  succeMaxLen: '1',
+  succeMinLen: '1',
+  conDisAntecedentType: CedentConDisType.Conjunction,
+  conDisSuccedentType: CedentConDisType.Conjunction,
   antecedent: [anteSucceDefault],
   succedent: [anteSucceDefault],
 } satisfies FourFtSchemaT;
@@ -74,16 +81,65 @@ const initialDatasetState: DatasetState = {
   errorMessage: undefined,
 };
 
+export type QuantifierField = (typeof allQuantifierFields)[number];
+
 export default function FourFtMiner() {
   const [currentDatasetState, setCurrentDatasetState] = useState<DatasetState>(initialDatasetState);
 
   const [formIsOpen, setFormIsOpen] = useState(true);
 
+  const [currentQuantifiers, setCurrentQuantifiers] = useState<QuantifierField[]>([]);
+  const quantifierOptions = allQuantifierFields.filter(
+    (field) => !currentQuantifiers.includes(field)
+  );
+
+  console.log(currentDatasetState);
+
+  const schema = fourftSchema.superRefine(({ base, relbase, aad, confidence }, ctx) => {
+    if (currentQuantifiers.includes('base') && !base) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Vyplňte, nebo odstraňte kvantifikátor',
+        path: ['base'],
+      });
+    }
+    if (currentQuantifiers.includes('relbase') && !relbase) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Vyplňte, nebo odstraňte kvantifikátor',
+        path: ['relbase'],
+      });
+    }
+    if (currentQuantifiers.includes('aad') && !aad) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Vyplňte, nebo odstraňte kvantifikátor',
+        path: ['aad'],
+      });
+    }
+    if (currentQuantifiers.includes('confidence') && !confidence) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Vyplňte, nebo odstraňte kvantifikátor',
+        path: ['confidence'],
+      });
+    }
+  });
+
   const form = useZodForm({
-    schema: fourftSchema,
+    schema: schema,
     defaultValues: fourftDefaultValues,
     mode: 'onSubmit',
   });
+
+  const addQuantifier = (field: QuantifierField) => {
+    setCurrentQuantifiers([...currentQuantifiers, field]);
+  };
+
+  const removeQuantifier = (field: QuantifierField) => {
+    setCurrentQuantifiers(currentQuantifiers.filter((currentField) => currentField !== field));
+    form.setValue(field, '');
+  };
 
   const onSubmit = async (data: FourFtSchemaT) => {
     const dataset = currentDatasetState;
@@ -115,7 +171,11 @@ export default function FourFtMiner() {
   return (
     <div className={'flex flex-col w-full h-full'}>
       <FourFtHeading />
-      <Collapsible open={formIsOpen} onOpenChange={setFormIsOpen} className="w-full relative">
+      <Collapsible
+        open={formIsOpen}
+        onOpenChange={setFormIsOpen}
+        className="w-full relative transition-all duration-200 ease-in-out"
+      >
         {!formIsOpen && (
           <div className="flex pl-8 pt-8 items-center mb-2">
             <div className="text-xl font-semibold">Four FT parameters Form</div>
@@ -136,15 +196,21 @@ export default function FourFtMiner() {
               currentDataset={currentDatasetState}
               isLoading={processFourFtRequestMutation.isPending}
               datasetsLoading={datasetsLoading}
+              addQuantifier={addQuantifier}
+              removeQuantifier={removeQuantifier}
+              quantifierOptions={quantifierOptions}
             />
           </Form>
         </CollapsibleContent>
         <CollapsibleTrigger
-          className={`absolute right-[2rem] w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
-            formIsOpen ? 'bottom-0' : 'bottom-[0]'
-          }`}
+          className={clsxm(
+            `absolute right-[2rem] w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg top-8`
+          )}
         >
-          {formIsOpen ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
+          <div className={`transition-all ${formIsOpen ? 'rotate-180' : ''}`}>
+            <ChevronDown className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <span className="sr-only">{formIsOpen ? 'Close form' : 'Open form'}</span>
         </CollapsibleTrigger>
       </Collapsible>
       <FourFtResults

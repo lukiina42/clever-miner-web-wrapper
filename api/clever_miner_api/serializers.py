@@ -63,8 +63,10 @@ class AnteSucceSerializer(serializers.Serializer):
 
 class FourFtMinerSerializer(serializers.Serializer):
     dataset_id = serializers.IntegerField()
-    base = serializers.IntegerField(min_value=1, max_value=1000000)
-    confidence = serializers.FloatField(min_value=0.1, max_value=1)
+    base = serializers.IntegerField(min_value=1, max_value=1000000, required=False, allow_null=True)
+    confidence = serializers.FloatField(min_value=0.1, max_value=1, required=False, allow_null=True)
+    relbase = serializers.FloatField(min_value=0.1, max_value=1, required=False, allow_null=True)
+    aad = serializers.FloatField(min_value=0.1, max_value=1, required=False, allow_null=True)
     anteMinLen = serializers.IntegerField(min_value=1, max_value=128)
     anteMaxLen = serializers.IntegerField(min_value=1, max_value=128)
     succeMinLen = serializers.IntegerField(min_value=1, max_value=128)

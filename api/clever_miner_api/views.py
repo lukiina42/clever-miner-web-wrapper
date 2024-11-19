@@ -48,6 +48,8 @@ class FourFtMinerView(APIView):
             dataset_id = validated_data['dataset_id']
             base = validated_data['base']
             confidence = validated_data['confidence']
+            rel_base = validated_data['relbase']
+            aad = validated_data['aad']
             antecedents = validated_data.get('antecedent', [])
             succedents = validated_data.get('succedent', [])
             ante_min_len = validated_data.get('anteMinLen')
@@ -87,10 +89,17 @@ class FourFtMinerView(APIView):
             signed_url = DatasetSerializer(dataset).get_url(dataset)
             file = pd.read_csv(signed_url, encoding='cp1250', sep=', ')
 
+            quantifiers = {
+                'confidence': confidence,
+                'aad': aad,
+                'Base': base,
+                'relbase': rel_base
+            }
+
             clm = cleverminer(
                 df=file, 
                 proc='4ftMiner',
-                quantifiers={'conf': confidence, 'Base': base},
+                quantifiers=quantifiers,
                 ante={
                     'attributes': antecedent_attributes, 'minlen': ante_min_len, 'maxlen': ante_max_len, 'type': con_dis_antecedent_type
                 },

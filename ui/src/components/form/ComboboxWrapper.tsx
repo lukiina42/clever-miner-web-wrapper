@@ -15,6 +15,7 @@ interface Props {
   label: string;
   errorMessage: string | undefined;
   disabled?: boolean;
+  value: Value | undefined;
 }
 
 export function ComboboxWrapper({
@@ -24,6 +25,7 @@ export function ComboboxWrapper({
   isLoading,
   label,
   errorMessage,
+  value,
   disabled = false,
 }: Props) {
   return (
@@ -34,9 +36,8 @@ export function ComboboxWrapper({
         onValueChange={onValueChange}
         optionName={optionName}
         isLoading={isLoading}
-        label={label}
-        errorMessage={errorMessage}
         disabled={disabled}
+        value={value}
       />
       {errorMessage !== undefined && (
         <FormErrorMessage className="top-[-4rem]" errorMessage={errorMessage} />
