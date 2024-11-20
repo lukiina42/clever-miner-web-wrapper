@@ -62,7 +62,7 @@ const getCedentConDisTypeLabel = (value: string | null) => {
     case CedentConDisType.Disjunction:
       result = 'Disjunction';
       break;
-    case CedentType.Null:
+    case CedentConDisType.Null:
       result = '-';
       break;
   }

@@ -27,8 +27,8 @@ class DatasetApiView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = DatasetSerializer(data=request.data)
         if serializer.is_valid():
-            dataset = serializer.save()
-            return Response(DatasetSerializer(dataset).data, status=status.HTTP_201_CREATED)
+            serializer.save()
+            return Response(status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, *args, **kwargs):
@@ -37,7 +37,8 @@ class DatasetApiView(APIView):
         '''
         todos = Dataset.objects.all()
         serializer = DatasetSerializer(todos, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        data = serializer.data
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class FourFtMinerView(APIView):
@@ -111,8 +112,6 @@ class FourFtMinerView(APIView):
             rulelist = clm.rulelist
             for rule in rulelist:
                 rule['ruletext'] = clm.get_ruletext(rule['rule_id'])
-
-            print(rulelist)
 
             return Response(rulelist, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

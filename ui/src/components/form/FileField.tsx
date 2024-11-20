@@ -30,7 +30,7 @@ export default function FileField({
   ...rest
 }: Props) {
   return (
-    <div className="flex flex-col gap-2 hover:cursor-pointer">
+    <div className="flex flex-col gap-2 hover:cursor-pointer relative">
       <div className="flex flex-col gap-4">
         <label htmlFor={name}>{children}</label>
         <input

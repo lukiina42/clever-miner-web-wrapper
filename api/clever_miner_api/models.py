@@ -4,10 +4,12 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 
-# TODO should contain delimiter as well
 class Dataset(models.Model):
     name = models.CharField(max_length=32)
+    delimiter = models.CharField(max_length=16, default=',')
     s3_key = models.CharField(max_length=256)
+    rows_count = models.IntegerField(default=0)
+    columns_count = models.IntegerField(default=0)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

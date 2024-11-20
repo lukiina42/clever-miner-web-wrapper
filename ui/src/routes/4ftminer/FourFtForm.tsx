@@ -143,7 +143,7 @@ export default function FourFtForm({
             <b>+</b> Add succedent
           </Button>
         </div>
-        <div className="w-full flex items-start justify-end">
+        <div className="w-full flex items-start justify-end pr-6">
           <Button
             disabled={isLoading}
             type={'submit'}

@@ -9,7 +9,7 @@ import {
   IntOptional,
   StringOptional,
 } from '@/components/form/formValidationTypes.ts';
-import FourFtHeading from '@/routes/4ftminer/FourFtHeading.tsx';
+import PageHeading from '@/components/ui/PageHeading.tsx';
 import FourFtForm from '@/routes/4ftminer/FourFtForm.tsx';
 import { Dataset, useGetDatasets } from '@/api/dataset.ts';
 import { useCreateFourFt } from '@/api/fourft.ts';
@@ -93,8 +93,6 @@ export default function FourFtMiner() {
     (field) => !currentQuantifiers.includes(field)
   );
 
-  console.log(currentDatasetState);
-
   const schema = fourftSchema.superRefine(({ base, relbase, aad, confidence }, ctx) => {
     if (currentQuantifiers.includes('base') && !base) {
       ctx.addIssue({
@@ -170,7 +168,7 @@ export default function FourFtMiner() {
 
   return (
     <div className={'flex flex-col w-full h-full'}>
-      <FourFtHeading />
+      <PageHeading title={'4FT Miner'} />
       <Collapsible
         open={formIsOpen}
         onOpenChange={setFormIsOpen}

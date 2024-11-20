@@ -1,6 +1,7 @@
 import { baseApiUrl } from '@/utils/constants.ts';
 import { z } from 'zod';
 import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import { Dispatch, SetStateAction } from 'react';
 
 // Define the Zod schema
 const datasetSchema = z.object({
@@ -9,6 +10,8 @@ const datasetSchema = z.object({
   name: z.string(),
   url: z.string(),
   header_names: z.array(z.string()),
+  columns_count: z.number(),
+  rows_count: z.number(),
 });
 
 const datasetArraySchema = z.array(datasetSchema);
@@ -50,23 +53,29 @@ export const useGetDatasets = () => {
 
 interface CreateDatasetPayload {
   file: File;
-  delimiter?: string;
+  delimiter: string;
 }
 
-export const useCreateDataset = (queryClient: QueryClient) =>
+export const useCreateDataset = (
+  queryClient: QueryClient,
+  setOpenForm: Dispatch<SetStateAction<boolean>>
+) =>
   useMutation({
     mutationFn: async (dataset: CreateDatasetPayload) => {
       const data = new FormData();
       data.append('file', dataset.file);
-      const result = await fetch(datasetApiUrl, {
+      data.append('delimiter', dataset.delimiter);
+      const response = await fetch(datasetApiUrl, {
         method: 'POST',
         body: data,
       });
-      return result.json();
+      if (response.status === 201) {
+        await queryClient.invalidateQueries({ queryKey: DATASETS_COLLECTION_QUERY_KEY });
+        setOpenForm(false);
+      }
+      return await response.json();
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: DATASETS_COLLECTION_QUERY_KEY });
-    },
+    onSuccess: async () => {},
     onError: (error) => {
       throw error;
     },
