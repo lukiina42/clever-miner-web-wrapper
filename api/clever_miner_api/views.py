@@ -1,4 +1,5 @@
 # api/clever_miner_api/views.py
+from cleverminer import cleverminer
 from drf_spectacular.utils import extend_schema
 from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
@@ -6,11 +7,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 
-from .cleverminer import cleverminer
 from .models import Dataset
 from .serializers import DatasetSerializer, FourFtMinerSerializer
 
 import pandas as pd
+
+from .utils.const import get_saved_result_path
+
 
 class DatasetApiView(APIView):
     parser_classes = (MultiPartParser,)
@@ -63,18 +66,18 @@ class FourFtMinerView(APIView):
                 {
                     'name': antecedent['name'],
                     'type': antecedent['type'],
-                    'minlen': antecedent['minLen'],
-                    'maxlen': antecedent['maxLen']
+                    'minlen': antecedent['min_len'],
+                    'maxlen': antecedent['max_len']
                 }
                 for antecedent in antecedents
             ]
-            
+
             succedent_attributes = [
                 {
                     'name': succedent['name'],
                     'type': succedent['type'],
-                    'minlen': succedent['minLen'],
-                    'maxlen': succedent['maxLen']
+                    'minlen': succedent['min_len'],
+                    'maxlen': succedent['max_len']
                 }
                 for succedent in succedents
             ]
@@ -98,15 +101,20 @@ class FourFtMinerView(APIView):
 
             quantifiers = {key: value for key, value in quantifiers.items() if value is not None}
 
+            if len(quantifiers) == 0:
+                quantifiers = {'Base': 0}
+
             clm = cleverminer(
-                df=file, 
+                df=file,
                 proc='4ftMiner',
                 quantifiers=quantifiers,
                 ante={
-                    'attributes': antecedent_attributes, 'minlen': ante_min_len, 'maxlen': ante_max_len, 'type': con_dis_antecedent_type
+                    'attributes': antecedent_attributes, 'minlen': ante_min_len, 'maxlen': ante_max_len,
+                    'type': con_dis_antecedent_type
                 },
                 succ={
-                    'attributes': succedent_attributes, 'minlen': succe_min_len, 'maxlen': succe_max_len, 'type': con_dis_succedent_type
+                    'attributes': succedent_attributes, 'minlen': succe_min_len, 'maxlen': succe_max_len,
+                    'type': con_dis_succedent_type
                 }
             )
 
@@ -114,7 +122,7 @@ class FourFtMinerView(APIView):
             for rule in rulelist:
                 rule['ruletext'] = clm.get_ruletext(rule['rule_id'])
 
-            # clm.save()
+            clm.load(get_saved_result_path())
 
             return Response(rulelist, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

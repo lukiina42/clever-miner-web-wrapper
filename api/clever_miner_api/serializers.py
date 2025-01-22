@@ -7,6 +7,8 @@ from .utils.s3 import create_presigned_url, get_boto_s3_client
 
 import pandas as pd
 
+import re
+
 
 def get_delimiter(value):
     match value.lower():
@@ -25,6 +27,23 @@ def get_delimiter(value):
         case _:
             return value
 
+
+class CamelCaseToSnakeCaseSerializer(serializers.Serializer):
+    """
+    A base serializer that converts camelCase keys in incoming data to snake_case.
+    """
+
+    def to_internal_value(self, data):
+        # Convert camelCase keys to snake_case
+        snake_case_data = {}
+        for key, value in data.items():
+            snake_case_key = self.camel_to_snake(key)
+            snake_case_data[snake_case_key] = value
+        return super().to_internal_value(snake_case_data)
+
+    @staticmethod
+    def camel_to_snake(name):
+        return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
 
 class DatasetSerializer(serializers.ModelSerializer):
     file = serializers.FileField(write_only=True, required=True)
@@ -62,7 +81,8 @@ class DatasetSerializer(serializers.ModelSerializer):
         }, )
 
         # Save the dataset information in the database
-        dataset = Dataset(name=file.name, s3_key=s3_key, delimiter=delimiter, rows_count=rows_count, columns_count=columns_count)
+        dataset = Dataset(name=file.name, s3_key=s3_key, delimiter=delimiter, rows_count=rows_count,
+                          columns_count=columns_count)
         dataset.save()
 
         return dataset
@@ -84,24 +104,25 @@ class DatasetSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         return create_presigned_url(settings.AWS_STORAGE_BUCKET_NAME, obj.s3_key)
 
-class AnteSucceSerializer(serializers.Serializer):
+
+class AnteSucceSerializer(CamelCaseToSnakeCaseSerializer):
     name = serializers.CharField(max_length=256)
     type = serializers.CharField(max_length=256)
-    minLen = serializers.IntegerField(min_value=1)
-    maxLen = serializers.IntegerField(min_value=1)
+    min_len = serializers.IntegerField(min_value=1)
+    max_len = serializers.IntegerField(min_value=1)
 
 
-class FourFtMinerSerializer(serializers.Serializer):
+class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     dataset_id = serializers.IntegerField()
     base = serializers.IntegerField(min_value=1, max_value=1000000, required=False, allow_null=True)
     confidence = serializers.FloatField(max_value=1, required=False, allow_null=True)
     relbase = serializers.FloatField(max_value=1, required=False, allow_null=True)
     aad = serializers.FloatField(max_value=1, required=False, allow_null=True)
-    anteMinLen = serializers.IntegerField(min_value=1, max_value=128)
-    anteMaxLen = serializers.IntegerField(min_value=1, max_value=128)
-    succeMinLen = serializers.IntegerField(min_value=1, max_value=128)
-    succeMaxLen = serializers.IntegerField(min_value=1, max_value=128)
-    conDisAntecedentType = serializers.CharField(max_length=256)
-    conDisSuccedentType = serializers.CharField(max_length=256)
+    ante_min_len = serializers.IntegerField(source='anteMinLen', min_value=1, max_value=128)
+    ante_max_len = serializers.IntegerField(source='anteMaxLen', min_value=1, max_value=128)
+    succe_min_len = serializers.IntegerField(source='succeMinLen', min_value=1, max_value=128)
+    succe_max_len = serializers.IntegerField(source='succeMaxLen', min_value=1, max_value=128)
+    con_dis_antecedent_type = serializers.CharField(source='conDisAntecedentType', max_length=256)
+    con_dis_succedent_type = serializers.CharField(source='conDisSuccedentType', max_length=256)
     antecedent = AnteSucceSerializer(many=True)
     succedent = AnteSucceSerializer(many=True)
