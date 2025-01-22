@@ -37,7 +37,7 @@ const cedentZodObject = z.object({
 
 const fourftSchema = z.object({
   base: IntOptional(1, 1000000),
-  relbase: FloatOptional(0.001, 1),
+  relBase: FloatOptional(0.001, 1),
   confidence: FloatOptional(0.001, 1),
   aad: FloatOptional(0.001, 1),
   anteMinLen: IntMandatory(1, 64),
@@ -56,7 +56,7 @@ const fourftSchema = z.object({
 
 const fourftDefaultValues = {
   base: '',
-  relbase: '',
+  relBase: '',
   confidence: '',
   aad: '',
   anteMaxLen: '1',
@@ -93,7 +93,7 @@ export default function FourFtMiner() {
     (field) => !currentQuantifiers.includes(field)
   );
 
-  const schema = fourftSchema.superRefine(({ base, relbase, aad, confidence }, ctx) => {
+  const schema = fourftSchema.superRefine(({ base, relBase, aad, confidence }, ctx) => {
     if (currentQuantifiers.includes('base') && !base) {
       ctx.addIssue({
         code: 'custom',
@@ -101,11 +101,11 @@ export default function FourFtMiner() {
         path: ['base'],
       });
     }
-    if (currentQuantifiers.includes('relbase') && !relbase) {
+    if (currentQuantifiers.includes('relBase') && !relBase) {
       ctx.addIssue({
         code: 'custom',
         message: 'Vyplňte, nebo odstraňte kvantifikátor',
-        path: ['relbase'],
+        path: ['relBase'],
       });
     }
     if (currentQuantifiers.includes('aad') && !aad) {

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Dataset
+from .models import Dataset, FourFtResult, Cedent
 from django.conf import settings
 
 from .utils.rand_string import generate_random_string
@@ -116,13 +116,52 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     dataset_id = serializers.IntegerField()
     base = serializers.IntegerField(min_value=1, max_value=1000000, required=False, allow_null=True)
     confidence = serializers.FloatField(max_value=1, required=False, allow_null=True)
-    relbase = serializers.FloatField(max_value=1, required=False, allow_null=True)
+    rel_base = serializers.FloatField(max_value=1, required=False, allow_null=True)
     aad = serializers.FloatField(max_value=1, required=False, allow_null=True)
-    ante_min_len = serializers.IntegerField(source='anteMinLen', min_value=1, max_value=128)
-    ante_max_len = serializers.IntegerField(source='anteMaxLen', min_value=1, max_value=128)
-    succe_min_len = serializers.IntegerField(source='succeMinLen', min_value=1, max_value=128)
-    succe_max_len = serializers.IntegerField(source='succeMaxLen', min_value=1, max_value=128)
-    con_dis_antecedent_type = serializers.CharField(source='conDisAntecedentType', max_length=256)
-    con_dis_succedent_type = serializers.CharField(source='conDisSuccedentType', max_length=256)
+    ante_min_len = serializers.IntegerField(min_value=1, max_value=128)
+    ante_max_len = serializers.IntegerField(min_value=1, max_value=128)
+    succe_min_len = serializers.IntegerField(min_value=1, max_value=128)
+    succe_max_len = serializers.IntegerField(min_value=1, max_value=128)
+    con_dis_antecedent_type = serializers.CharField(max_length=256)
+    con_dis_succedent_type = serializers.CharField(max_length=256)
     antecedent = AnteSucceSerializer(many=True)
     succedent = AnteSucceSerializer(many=True)
+
+    def create(self, validated_data):
+        antecedents = validated_data.pop('antecedent', [])
+        succedents = validated_data.pop('succedent', [])
+        dataset_id = validated_data.pop('dataset_id')
+
+        try:
+            dataset = Dataset.objects.get(id=dataset_id)
+        except Dataset.DoesNotExist:
+            raise serializers.ValidationError({"dataset_id": f"Dataset with id {dataset_id} not found."})
+
+        # Create the FourFtResult instance
+        four_ft_result = FourFtResult.objects.create(dataset=dataset, **validated_data)
+
+        # Create Cedent instances for antecedents
+        Cedent.objects.bulk_create([
+            Cedent(
+                name=antecedent['name'],
+                type=antecedent['type'],
+                min_len=antecedent['min_len'],
+                max_len=antecedent['max_len'],
+                role=Cedent.ANTECEDENT,
+                four_ft_result=four_ft_result
+            ) for antecedent in antecedents
+        ])
+
+        # Create Cedent instances for succedents
+        Cedent.objects.bulk_create([
+            Cedent(
+                name=succedent['name'],
+                type=succedent['type'],
+                min_len=succedent['min_len'],
+                max_len=succedent['max_len'],
+                role=Cedent.SUCCEDENT,
+                four_ft_result=four_ft_result
+            ) for succedent in succedents
+        ])
+
+        return four_ft_result

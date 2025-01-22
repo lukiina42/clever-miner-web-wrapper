@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=128)),
                 ('base', models.IntegerField(blank=True, null=True)),
                 ('confidence', models.FloatField(blank=True, null=True)),
-                ('relbase', models.FloatField(blank=True, null=True)),
+                ('rel_base', models.FloatField(blank=True, null=True)),
                 ('aad', models.FloatField(blank=True, null=True)),
                 ('ante_min_len', models.IntegerField(validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(128)])),
                 ('ante_max_len', models.IntegerField(validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(128)])),

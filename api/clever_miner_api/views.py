@@ -51,16 +51,16 @@ class FourFtMinerView(APIView):
             dataset_id = validated_data['dataset_id']
             base = validated_data['base']
             confidence = validated_data['confidence']
-            rel_base = validated_data['relbase']
+            rel_base = validated_data['rel_base']
             aad = validated_data['aad']
             antecedents = validated_data.get('antecedent', [])
             succedents = validated_data.get('succedent', [])
-            ante_min_len = validated_data.get('anteMinLen')
-            ante_max_len = validated_data.get('anteMaxLen')
-            succe_min_len = validated_data.get('succeMinLen')
-            succe_max_len = validated_data.get('succeMaxLen')
-            con_dis_antecedent_type = validated_data.get('conDisAntecedentType')
-            con_dis_succedent_type = validated_data.get('conDisSuccedentType')
+            ante_min_len = validated_data.get('ante_min_len')
+            ante_max_len = validated_data.get('ante_max_len')
+            succe_min_len = validated_data.get('succe_min_len')
+            succe_max_len = validated_data.get('succe_max_len')
+            con_dis_antecedent_type = validated_data.get('con_dis_antecedent_type')
+            con_dis_succedent_type = validated_data.get('con_dis_succedent_type')
 
             antecedent_attributes = [
                 {
@@ -122,7 +122,10 @@ class FourFtMinerView(APIView):
             for rule in rulelist:
                 rule['ruletext'] = clm.get_ruletext(rule['rule_id'])
 
-            clm.load(get_saved_result_path())
+            # Save to db
+            serializer.save()
+
+            # clm.load(get_saved_result_path())
 
             return Response(rulelist, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -9,3 +9,4 @@ To create migration: `python manage.py makemigrations` <br>
 To run migration: `python manage.py migrate` <br>
 Revert all migrations: `python manage.py migrate app zero` <br>
 
+

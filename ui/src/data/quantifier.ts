@@ -1,1 +1,1 @@
-export const allQuantifierFields = ['base', 'relbase', 'confidence', 'aad'] as const;
+export const allQuantifierFields = ['base', 'relBase', 'confidence', 'aad'] as const;
