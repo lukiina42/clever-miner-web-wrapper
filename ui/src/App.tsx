@@ -9,6 +9,8 @@ import {
 } from 'react-router-dom';
 import FourFtMiner from './routes/4ftminer/FourFtMiner.tsx';
 import Home from './routes/Home/Home.tsx';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -26,6 +28,18 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
+      <ToastContainer
+        position="top-right"
+        autoClose={1000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
     </QueryClientProvider>
   );
 }

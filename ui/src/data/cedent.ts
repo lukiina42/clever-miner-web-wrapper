@@ -13,6 +13,7 @@ export const anteSucceDefault = {
   minLen: '1',
   maxLen: '1',
   type: CedentType.Subset,
+  isValid: false,
 };
 
 const getCedentTypeLabel = (value: string | null) => {

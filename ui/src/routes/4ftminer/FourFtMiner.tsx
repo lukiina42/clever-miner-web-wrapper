@@ -33,6 +33,7 @@ const cedentZodObject = z.object({
   type: z.nativeEnum(CedentType, {
     invalid_type_error: 'Please choose an option',
   }),
+  isValid: z.boolean(),
 });
 
 const fourftSchema = z.object({
@@ -139,7 +140,17 @@ export default function FourFtMiner() {
     form.setValue(field, '');
   };
 
+  const addAnteSucceToEnd = () => {
+    const succedents = form.getValues('succedent');
+    succedents.push(anteSucceDefault);
+    form.setValue('succedent', succedents);
+    const antecedents = form.getValues('antecedent');
+    antecedents.push(anteSucceDefault);
+    form.setValue('antecedent', antecedents);
+  };
+
   const onSubmit = async (data: FourFtSchemaT) => {
+    console.log('submit');
     const dataset = currentDatasetState;
     if (dataset.value === undefined) {
       setCurrentDatasetState((prevState) => {
@@ -157,6 +168,8 @@ export default function FourFtMiner() {
     });
 
     setFormIsOpen(false);
+
+    addAnteSucceToEnd();
   };
 
   const processFourFtRequestMutation = useCreateFourFt();
@@ -188,7 +201,10 @@ export default function FourFtMiner() {
               errors={form.formState.errors}
               control={form.control}
               setValue={form.setValue}
+              getValues={form.getValues}
+              addAnteSucceToEnd={addAnteSucceToEnd}
               clearErrors={form.clearErrors}
+              trigger={form.trigger}
               datasets={datasets}
               setCurrentDataset={setCurrentDatasetState}
               currentDataset={currentDatasetState}
