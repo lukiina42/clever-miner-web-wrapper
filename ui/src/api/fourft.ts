@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { Rule } from '@/routes/4ftminer/FourFtResults.tsx';
-import { FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
 import { baseApiUrl } from '@/utils/constants.ts';
+import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
 const fourFtApiUrl = `${baseApiUrl}/fourftminer`;
 

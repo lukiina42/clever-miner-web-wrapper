@@ -9,12 +9,13 @@ import {
   UseFormSetValue,
   UseFormTrigger,
 } from 'react-hook-form';
-import { DatasetState, FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
+import { DatasetState } from '@/routes/4ftminer/FourFtMiner.tsx';
 import { DatasetHeaderName } from '@/routes/4ftminer/FourFtForm.tsx';
 import AddAnteSucceDialog from '@/routes/4ftminer/AddAnteSucceDialog.tsx';
 import AnteSucceList from '@/routes/4ftminer/AnteSucceList.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { displayNotification } from '@/utils/displayNotification.ts';
+import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
 interface Props<T extends FieldValues> {
   register: UseFormRegister<T>;

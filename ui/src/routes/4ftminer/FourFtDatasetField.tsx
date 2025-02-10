@@ -2,9 +2,10 @@ import React, { SetStateAction } from 'react';
 import { ComboboxWrapper } from '@/components/form/ComboboxWrapper.tsx';
 import { FieldValues, UseFormSetValue } from 'react-hook-form';
 import { Dataset } from '@/api/dataset.ts';
-import { DatasetState, FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
+import { DatasetState } from '@/routes/4ftminer/FourFtMiner.tsx';
 import { Value } from '@/components/form/ComboboxHookFormWrapper.tsx';
 import { anteSucceDefault } from '@/data/cedent.ts';
+import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
 interface Props<T extends FieldValues> {
   datasets: Dataset[];

@@ -8,9 +8,9 @@ import {
 } from '@/components/ui/dialog.tsx';
 import { useState } from 'react';
 import { anteSucceDefault } from '@/data/cedent.ts';
-import { FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
 import AnteSucceInput from '@/routes/4ftminer/AnteSucceInput.tsx';
 import { AnteSucceInputProps } from '@/type/anteSucceInput.ts';
+import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
 export default function AddAnteSucceDialog({
   title,

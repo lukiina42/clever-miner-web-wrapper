@@ -7,7 +7,6 @@ import {
   UseFormRegister,
   UseFormSetValue,
 } from 'react-hook-form';
-import { FourFtSchemaT } from './FourFtMiner';
 import { capitalizeFirstLetter } from '@/utils/helperFunction';
 import TextInputField from '@/components/form/TextInputField';
 import { Label } from '@/components/ui/label';
@@ -16,6 +15,7 @@ import Selectbox from '@/components/form/Selectbox';
 import { cedentTypes } from '@/data/cedent';
 import SelectOption from '@/components/form/SelectOption';
 import { Button } from '@/components/ui/button.tsx';
+import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
 type Props = {
   fieldName: 'antecedent' | 'succedent';

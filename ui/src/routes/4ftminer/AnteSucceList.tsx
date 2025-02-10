@@ -1,7 +1,7 @@
 import { UseFieldArrayRemove, useWatch } from 'react-hook-form';
-import { FourFtSchemaT } from './FourFtMiner';
 import { AnteSucceInputProps } from '@/type/anteSucceInput.ts';
 import AddAnteSucceDialog from '@/routes/4ftminer/AddAnteSucceDialog.tsx';
+import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
 type Props = {
   remove: UseFieldArrayRemove;

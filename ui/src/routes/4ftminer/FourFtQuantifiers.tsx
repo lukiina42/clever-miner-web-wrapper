@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label.tsx';
 import TextInputField from '@/components/form/TextInputField.tsx';
 import { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
-import { FourFtSchemaT, QuantifierField } from '@/routes/4ftminer/FourFtMiner.tsx';
+import { QuantifierField } from '@/routes/4ftminer/FourFtMiner.tsx';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu.tsx';
 import { allQuantifierFields } from '@/data/quantifier.ts';
 import { capitalizeFirstLetter } from '@/utils/helperFunction.ts';
+import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
 interface Props<T extends FieldValues> {
   register: UseFormRegister<T>;
