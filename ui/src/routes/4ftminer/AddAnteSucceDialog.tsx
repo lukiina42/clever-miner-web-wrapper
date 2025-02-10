@@ -38,6 +38,7 @@ export default function AddAnteSucceDialog({
     if (await validateInput()) {
       setValue(`${title}.${index}.isValid`, true);
       setIsOpen(false);
+      clearErrors(title);
       if (!isUpdate) {
         append(anteSucceDefault);
       }

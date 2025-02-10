@@ -8,7 +8,6 @@ import {
   UseFormRegister,
   UseFormSetValue,
   UseFormTrigger,
-  UseFormWatch,
 } from 'react-hook-form';
 import { DatasetState, FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
 import { DatasetHeaderName } from '@/routes/4ftminer/FourFtForm.tsx';
@@ -55,11 +54,13 @@ export default function Antecedents({
     if (disabledAdding) displayNotification('Choose a dataset first', 'info');
   };
 
+  const errorMessage = errors.antecedent?.message ?? errors.antecedent?.root?.message ?? '';
+
   return (
     <div className={'flex flex-col gap-2'}>
       <div className={'text-lg font-bold'}>Configure antecedents</div>
-      <div className="flex flex-col gap-6">
-        <AnteBaseParameters fieldName="antecedent" register={register} errors={errors} />
+      <div className="flex flex-col gap-6 items-center">
+        <AnteBaseParameters register={register} errors={errors} />
         <AnteSucceList
           remove={removeAntecedent}
           title={'antecedent'}
@@ -74,7 +75,6 @@ export default function Antecedents({
           datasetHeaderNames={datasetHeaderNames}
           currentDataset={currentDataset}
           fieldLength={antecedentFields.length}
-          handleAddClick={handleAddClick}
         />
         <AddAnteSucceDialog
           title={'antecedent'}
@@ -91,13 +91,18 @@ export default function Antecedents({
           currentDataset={currentDataset}
           fieldLength={antecedentFields.length}
         >
-          <Button
-            onClick={handleAddClick}
-            type="button"
-            className="cursor-pointer bg-black hover:bg-gray-800 w-40"
-          >
-            <b>+</b> Add antecedent
-          </Button>
+          <div className={'flex flex-col gap-2 items-center'}>
+            <Button
+              onClick={handleAddClick}
+              type="button"
+              className="cursor-pointer bg-black hover:bg-gray-800 w-40"
+            >
+              <b>+</b> Add antecedent
+            </Button>
+            {errorMessage !== '' && (
+              <div className={'text-xs font-medium text-red-500'}>{errorMessage}</div>
+            )}
+          </div>
         </AddAnteSucceDialog>
       </div>
     </div>

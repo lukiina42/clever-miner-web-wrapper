@@ -27,11 +27,9 @@ export default function AnteSucceList({
 
   const cedents = cedentsAll.filter((cedent) => cedent.isValid);
 
-  console.log(title, ' ', cedents);
-
   return (
     <div className="w-full flex flex-col gap-1">
-      {cedents.map(({ id, name, type, minLen, maxLen }, index) => (
+      {cedents.map(({ name, type, minLen, maxLen }, index) => (
         <AddAnteSucceDialog
           title={title}
           append={append}
@@ -46,14 +44,18 @@ export default function AnteSucceList({
           datasetHeaderNames={datasetHeaderNames}
           currentDataset={currentDataset}
           fieldLength={cedents.length}
-          key={id}
+          // just for now, the id can be the same in some cases..
+          key={index}
         >
           <div
             className={
               'w-full flex justify-between items-center hover:bg-gray-200 cursor-pointer p-1 rounded'
             }
           >
-            <div>{`${name}(${type}), ${minLen} - ${maxLen}`}</div>{' '}
+            <div>
+              <b>#{index + 1}</b>
+              {`: ${name}(${type}), ${minLen} - ${maxLen}`}
+            </div>{' '}
             <div
               onClick={(event) => {
                 event.stopPropagation();

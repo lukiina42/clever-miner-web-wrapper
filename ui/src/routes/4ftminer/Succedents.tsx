@@ -1,4 +1,3 @@
-import AnteBaseParameters from '@/routes/4ftminer/AnteBaseParameters.tsx';
 import {
   Control,
   FieldErrors,
@@ -8,7 +7,6 @@ import {
   UseFormRegister,
   UseFormSetValue,
   UseFormTrigger,
-  UseFormWatch,
 } from 'react-hook-form';
 import { DatasetState, FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
 import { DatasetHeaderName } from '@/routes/4ftminer/FourFtForm.tsx';
@@ -56,10 +54,12 @@ export default function Succedents({
     if (disabledAdding) displayNotification('Choose a dataset first', 'info');
   };
 
+  const errorMessage = errors.succedent?.message ?? errors.succedent?.root?.message ?? '';
+
   return (
     <div className={'flex flex-col gap-2'}>
       <div className={'text-lg font-bold'}>Configure succedents</div>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 items-center">
         <SucceBaseParameters register={register} errors={errors} />
         <AnteSucceList
           remove={removeSuccedent}
@@ -91,13 +91,18 @@ export default function Succedents({
           currentDataset={currentDataset}
           fieldLength={succedentFields.length}
         >
-          <Button
-            onClick={handleAddClick}
-            type="button"
-            className="cursor-pointer bg-black hover:bg-gray-800 w-40"
-          >
-            <b>+</b> Add succedent
-          </Button>
+          <div className={'flex flex-col gap-2 items-center'}>
+            <Button
+              onClick={handleAddClick}
+              type="button"
+              className="cursor-pointer bg-black hover:bg-gray-800 w-40"
+            >
+              <b>+</b> Add succedent
+            </Button>
+            {errorMessage !== '' && (
+              <div className={'text-xs font-medium text-red-500'}>{errorMessage}</div>
+            )}
+          </div>
         </AddAnteSucceDialog>
       </div>
     </div>

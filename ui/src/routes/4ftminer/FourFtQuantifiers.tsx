@@ -33,10 +33,10 @@ export default function FourFtQuantifiers({
   );
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-8 p-4 items-center">
       <div className={'flex flex-col gap-5'}>
         {quantifierItems.map((option) => (
-          <div className={'w-[300px]'}>
+          <div className={'w-64'}>
             <div className={'flex justify-between w-full'}>
               <Label htmlFor={option}>{capitalizeFirstLetter(option)}</Label>
               <div

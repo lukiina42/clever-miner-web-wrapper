@@ -10,7 +10,6 @@ import {
   UseFormRegister,
   UseFormSetValue,
   UseFormTrigger,
-  UseFormWatch,
 } from 'react-hook-form';
 import { Dataset } from '@/api/dataset.ts';
 import { DatasetState, FourFtSchemaT, QuantifierField } from '@/routes/4ftminer/FourFtMiner.tsx';
@@ -18,7 +17,6 @@ import FourFtQuantifiers from '@/routes/4ftminer/FourFtQuantifiers.tsx';
 import FourFtDatasetField from '@/routes/4ftminer/FourFtDatasetField.tsx';
 import Antecedents from '@/routes/4ftminer/Antecedents.tsx';
 import Succedents from '@/routes/4ftminer/Succedents.tsx';
-import { anteSucceDefault } from '@/data/cedent.ts';
 
 interface Props<T extends FieldValues> {
   onSubmit: (data: T) => void;
@@ -86,11 +84,6 @@ export default function FourFtForm({
     const succedents = getValues('succedent');
     const validAntecedents = antecedents.filter((cedent) => cedent.isValid);
     const validSuccedents = succedents.filter((cedent) => cedent.isValid);
-    if (validSuccedents.length === 0 || validAntecedents.length === 0) {
-      await trigger();
-      //todo error handling of missing antecedents and succedents
-      return;
-    }
 
     setValue('antecedent', validAntecedents, { shouldValidate: true });
     setValue('succedent', validSuccedents, { shouldValidate: true });
@@ -142,7 +135,7 @@ export default function FourFtForm({
             trigger={trigger}
           />
         </div>
-        <div className="w-full flex items-start justify-end pr-6">
+        <div className="w-full flex items-start justify-end pr-6 pt-6">
           <Button
             disabled={isLoading}
             type={'submit'}

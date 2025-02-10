@@ -36,24 +36,44 @@ const cedentZodObject = z.object({
   isValid: z.boolean(),
 });
 
-const fourftSchema = z.object({
-  base: IntOptional(1, 1000000),
-  relBase: FloatOptional(0.001, 1),
-  confidence: FloatOptional(0.001, 1),
-  aad: FloatOptional(0.001, 1),
-  anteMinLen: IntMandatory(1, 64),
-  anteMaxLen: IntMandatory(1, 64),
-  succeMinLen: IntMandatory(1, 64),
-  succeMaxLen: IntMandatory(1, 64),
-  conDisAntecedentType: z.nativeEnum(CedentConDisType, {
-    invalid_type_error: 'Please choose an option',
-  }),
-  conDisSuccedentType: z.nativeEnum(CedentConDisType, {
-    invalid_type_error: 'Please choose an option',
-  }),
-  antecedent: z.array(cedentZodObject),
-  succedent: z.array(cedentZodObject),
-});
+const fourftSchema = z
+  .object({
+    base: IntOptional(1, 1000000),
+    relBase: FloatOptional(0.001, 1),
+    confidence: FloatOptional(0.001, 1),
+    aad: FloatOptional(0.001, 1),
+    anteMinLen: IntMandatory(1, 64),
+    anteMaxLen: IntMandatory(1, 64),
+    succeMinLen: IntMandatory(1, 64),
+    succeMaxLen: IntMandatory(1, 64),
+    conDisAntecedentType: z.nativeEnum(CedentConDisType, {
+      invalid_type_error: 'Please choose an option',
+    }),
+    conDisSuccedentType: z.nativeEnum(CedentConDisType, {
+      invalid_type_error: 'Please choose an option',
+    }),
+    antecedent: z.array(cedentZodObject),
+    succedent: z.array(cedentZodObject),
+  })
+  .superRefine(({ antecedent, succedent }, ctx) => {
+    const validAntecedensCount = antecedent.filter((a) => a.isValid).length;
+    if (validAntecedensCount === 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'At least one antecedent is required',
+        path: ['antecedent'],
+      });
+    }
+
+    const validSuccedentsCount = succedent.filter((s) => s.isValid).length;
+    if (validSuccedentsCount === 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'At least one succedent is required',
+        path: ['succedent'],
+      });
+    }
+  });
 
 const fourftDefaultValues = {
   base: '',
@@ -98,28 +118,28 @@ export default function FourFtMiner() {
     if (currentQuantifiers.includes('base') && !base) {
       ctx.addIssue({
         code: 'custom',
-        message: 'Vyplňte, nebo odstraňte kvantifikátor',
+        message: 'Fill in or remove quantifier',
         path: ['base'],
       });
     }
     if (currentQuantifiers.includes('relBase') && !relBase) {
       ctx.addIssue({
         code: 'custom',
-        message: 'Vyplňte, nebo odstraňte kvantifikátor',
+        message: 'Fill in or remove quantifier',
         path: ['relBase'],
       });
     }
     if (currentQuantifiers.includes('aad') && !aad) {
       ctx.addIssue({
         code: 'custom',
-        message: 'Vyplňte, nebo odstraňte kvantifikátor',
+        message: 'Fill in or remove quantifier',
         path: ['aad'],
       });
     }
     if (currentQuantifiers.includes('confidence') && !confidence) {
       ctx.addIssue({
         code: 'custom',
-        message: 'Vyplňte, nebo odstraňte kvantifikátor',
+        message: 'Fill in or remove quantifier',
         path: ['confidence'],
       });
     }
@@ -130,6 +150,8 @@ export default function FourFtMiner() {
     defaultValues: fourftDefaultValues,
     mode: 'onSubmit',
   });
+
+  console.log(form.formState.errors);
 
   const addQuantifier = (field: QuantifierField) => {
     setCurrentQuantifiers([...currentQuantifiers, field]);

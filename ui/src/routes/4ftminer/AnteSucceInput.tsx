@@ -1,15 +1,13 @@
 import { ComboboxHookFormWrapper, Value } from '@/components/form/ComboboxHookFormWrapper';
 import {
   Control,
-  FieldArrayWithId,
   FieldError,
   FieldErrors,
   UseFormClearErrors,
   UseFormRegister,
   UseFormSetValue,
-  UseFormTrigger,
 } from 'react-hook-form';
-import { cedentZodObject, FourFtSchemaT } from './FourFtMiner';
+import { FourFtSchemaT } from './FourFtMiner';
 import { capitalizeFirstLetter } from '@/utils/helperFunction';
 import TextInputField from '@/components/form/TextInputField';
 import { Label } from '@/components/ui/label';
@@ -17,7 +15,6 @@ import { InfoIcon } from '@/components/ui/InfoIcon';
 import Selectbox from '@/components/form/Selectbox';
 import { cedentTypes } from '@/data/cedent';
 import SelectOption from '@/components/form/SelectOption';
-import React, { SetStateAction } from 'react';
 import { Button } from '@/components/ui/button.tsx';
 
 type Props = {
