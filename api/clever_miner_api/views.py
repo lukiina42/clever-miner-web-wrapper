@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 
+from pathlib import Path
+
 from .models import Dataset
 from .serializers import DatasetSerializer, FourFtMinerSerializer
 
@@ -90,7 +92,7 @@ class FourFtMinerView(APIView):
 
             # Use get_url method from DatasetSerializer to get the presigned URL
             signed_url = DatasetSerializer(dataset).get_url(dataset)
-            file = pd.read_csv(signed_url, encoding='cp1250', sep=', ')
+            file = pd.read_csv(signed_url, encoding='cp1250', sep=dataset.delimiter)
 
             quantifiers = {
                 'confidence': confidence,
@@ -123,9 +125,10 @@ class FourFtMinerView(APIView):
                 rule['ruletext'] = clm.get_ruletext(rule['rule_id'])
 
             # Save to db
-            serializer.save()
+            serializer.save(clm=clm)
 
-            # clm.load(get_saved_result_path())
+            # draw_rule = clm.draw_rule(1)
+            # clm.load(get_saved_result_path(23))
 
             return Response(rulelist, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

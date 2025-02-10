@@ -5,6 +5,11 @@ from botocore.client import Config
 
 from django.conf import settings
 
+from pathlib import Path
+
+from ..utils.rand_string import generate_random_string
+from ..utils.const import get_saved_result_path
+
 
 def get_boto_s3_client():
     return boto3.client('s3',
@@ -15,7 +20,7 @@ def get_boto_s3_client():
                         )
 
 
-def   create_presigned_url(bucket_name, object_name, expiration=24000):
+def   create_presigned_url(bucket_name: str, object_name: str, expiration=24000):
     """Generate a presigned URL to share an S3 object
 
     :param bucket_name: string
@@ -37,3 +42,39 @@ def   create_presigned_url(bucket_name, object_name, expiration=24000):
 
     # The response contains the presigned URL
     return response
+
+def dataset_s3_upload(file):
+    s3 = get_boto_s3_client()
+
+    random_string = generate_random_string(32)
+    s3_key = f'datasets/{random_string}'
+
+    file.seek(0)
+
+    s3.upload_fileobj(file, settings.AWS_STORAGE_BUCKET_NAME, s3_key, ExtraArgs={
+        'ContentType': file.content_type,
+    }, )
+    
+    return s3_key
+
+def four_ft_result_s3_upload(clm, fourft_id):
+    result_path = get_saved_result_path(fourft_id)
+
+    clm.save(result_path)
+
+    file_path = "../../" + result_path
+    path = Path(__file__).parent / file_path
+    with path.open("rb") as saved_file:  # Ensure binary mode
+        s3 = get_boto_s3_client()
+        random_string = generate_random_string(32)
+        s3_key = f'results/{random_string}'
+
+        saved_file.seek(0)
+
+        s3.upload_fileobj(saved_file, settings.AWS_STORAGE_BUCKET_NAME, s3_key, ExtraArgs={
+            'ContentType': 'application/octet-stream',
+        }, )
+
+    # **Delete the file after upload**
+    if path.exists():
+        path.unlink()

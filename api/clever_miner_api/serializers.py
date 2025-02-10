@@ -2,8 +2,7 @@ from rest_framework import serializers
 from .models import Dataset, FourFtResult, Cedent
 from django.conf import settings
 
-from .utils.rand_string import generate_random_string
-from .utils.s3 import create_presigned_url, get_boto_s3_client
+from .utils.s3 import create_presigned_url, get_boto_s3_client, dataset_s3_upload, four_ft_result_s3_upload
 
 import pandas as pd
 
@@ -70,15 +69,7 @@ class DatasetSerializer(serializers.ModelSerializer):
         columns_count = len(df.axes[1])
 
         # Upload the file to S3
-        s3 = get_boto_s3_client()
-        random_string = generate_random_string(32)
-        s3_key = f'datasets/{random_string}'
-
-        file.seek(0)
-
-        s3.upload_fileobj(file, settings.AWS_STORAGE_BUCKET_NAME, s3_key, ExtraArgs={
-            'ContentType': file.content_type,
-        }, )
+        s3_key = dataset_s3_upload(file)
 
         # Save the dataset information in the database
         dataset = Dataset(name=file.name, s3_key=s3_key, delimiter=delimiter, rows_count=rows_count,
@@ -128,6 +119,8 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     succedent = AnteSucceSerializer(many=True)
 
     def create(self, validated_data):
+        clm = validated_data.pop('clm', None)
+
         antecedents = validated_data.pop('antecedent', [])
         succedents = validated_data.pop('succedent', [])
         dataset_id = validated_data.pop('dataset_id')
@@ -139,6 +132,9 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
 
         # Create the FourFtResult instance
         four_ft_result = FourFtResult.objects.create(dataset=dataset, **validated_data)
+
+        if len(clm.rulelist) > 0:
+            four_ft_result_s3_upload(clm, four_ft_result.id)
 
         # Create Cedent instances for antecedents
         Cedent.objects.bulk_create([
