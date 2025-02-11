@@ -1,7 +1,7 @@
 import '../../App.css';
 import { useGetDatasets } from '@/api/dataset.ts';
 import { LoadingSpinner } from '@/components/ui/loadingSpinner.tsx';
-import AddDatasetDialog from '@/routes/Dataset/AddDatasetDialog.tsx';
+import AddDatasetDialog from '@/containers/Dataset/AddDatasetDialog.tsx';
 import {
   Table,
   TableBody,

@@ -47,6 +47,7 @@ class FourFtResult(models.Model):
         blank=True,
         related_name='four_ft_results'
     )
+    s3_key = models.CharField(max_length=256, blank=True, null=True)
     base = models.IntegerField(blank=True, null=True)
     confidence = models.FloatField(blank=True, null=True)
     rel_base = models.FloatField(blank=True, null=True)

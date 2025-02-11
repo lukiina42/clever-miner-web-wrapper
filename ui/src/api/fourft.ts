@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { Rule } from '@/routes/4ftminer/FourFtResults.tsx';
+import { Rule } from '@/containers/4ftminer/FourFtResults.tsx';
 import { baseApiUrl } from '@/utils/constants.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 

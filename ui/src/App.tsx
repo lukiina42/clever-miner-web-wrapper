@@ -1,28 +1,25 @@
 import './App.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Dataset from './routes/Dataset/Dataset.tsx';
-import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  Route,
-  RouterProvider,
-} from 'react-router-dom';
-import FourFtMiner from './routes/4ftminer/FourFtMiner.tsx';
-import Home from './routes/Home/Home.tsx';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 
+import { RouterProvider, createRouter } from '@tanstack/react-router';
+
+// Import the generated route tree
+import { routeTree } from './routeTree.gen';
+
+// Create a new router instance
+const router = createRouter({ routeTree });
+
+// Register the router instance for type safety
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+
 // Create a client
 const queryClient = new QueryClient();
-
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route path="*" element={<Home />}>
-      <Route path="4ft-miner" element={<FourFtMiner />} />
-      <Route path="dataset" element={<Dataset />} />
-    </Route>
-  )
-);
 
 function App() {
   return (

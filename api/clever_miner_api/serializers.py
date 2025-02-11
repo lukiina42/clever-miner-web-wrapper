@@ -2,12 +2,11 @@ from rest_framework import serializers
 from .models import Dataset, FourFtResult, Cedent
 from django.conf import settings
 
-from .utils.s3 import create_presigned_url, get_boto_s3_client, dataset_s3_upload, four_ft_result_s3_upload
+from .utils.s3 import create_presigned_url, get_boto_s3_client, dataset_s3_upload, clm_s3_upload
 
 import pandas as pd
 
 import re
-
 
 def get_delimiter(value):
     match value.lower():
@@ -129,12 +128,15 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             dataset = Dataset.objects.get(id=dataset_id)
         except Dataset.DoesNotExist:
             raise serializers.ValidationError({"dataset_id": f"Dataset with id {dataset_id} not found."})
+        
+        s3_key = None
+        if len(clm.rulelist) > 0:
+            s3_key = clm_s3_upload(clm)
+            
+        validated_data.update({'s3_key': s3_key})
 
         # Create the FourFtResult instance
         four_ft_result = FourFtResult.objects.create(dataset=dataset, **validated_data)
-
-        if len(clm.rulelist) > 0:
-            four_ft_result_s3_upload(clm, four_ft_result.id)
 
         # Create Cedent instances for antecedents
         Cedent.objects.bulk_create([

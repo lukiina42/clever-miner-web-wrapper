@@ -1,5 +1,5 @@
-saved_result_path = 'intermediate_results/current_result'
+saved_result_path = 'intermediate_results/'
 
 
-def get_saved_result_path(id: int):
-    return saved_result_path + str(id) + '.pkl'
+def get_saved_result_path(identifier: str):
+    return saved_result_path + identifier + '.pkl'

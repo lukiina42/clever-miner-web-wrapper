@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label.tsx';
 import TextInputField from '@/components/form/TextInputField.tsx';
 import { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
-import { QuantifierField } from '@/routes/4ftminer/FourFtMiner.tsx';
+import { QuantifierField } from '@/containers/4ftminer/FourFtMiner.tsx';
 import {
   DropdownMenu,
   DropdownMenuContent,

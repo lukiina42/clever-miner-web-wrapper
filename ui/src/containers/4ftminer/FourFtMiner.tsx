@@ -2,12 +2,12 @@ import '../../App.css';
 import useZodForm from '@/components/form/useZodForm.ts';
 import { useState } from 'react';
 import PageHeading from '@/components/ui/PageHeading.tsx';
-import FourFtForm from '@/routes/4ftminer/FourFtForm.tsx';
+import FourFtForm from '@/containers/4ftminer/FourFtForm.tsx';
 import { Dataset, useGetDatasets } from '@/api/dataset.ts';
 import { useCreateFourFt } from '@/api/fourft.ts';
-import FourFtResults from '@/routes/4ftminer/FourFtResults.tsx';
+import FourFtResults from '@/containers/4ftminer/FourFtResults.tsx';
 import { Form } from '@/components/ui/form.tsx';
-import { anteSucceDefault } from '@/data/cedent';
+import { anteSucceDefault } from '@/data/cedent.ts';
 import {
   Collapsible,
   CollapsibleContent,

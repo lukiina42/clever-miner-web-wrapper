@@ -57,8 +57,11 @@ def dataset_s3_upload(file):
     
     return s3_key
 
-def four_ft_result_s3_upload(clm, fourft_id):
-    result_path = get_saved_result_path(fourft_id)
+# Procedure means 4ft, CF, Sd4ft miners, etc.
+def clm_s3_upload(clm):
+    random_string = generate_random_string(32)
+    
+    result_path = get_saved_result_path(random_string)
 
     clm.save(result_path)
 
@@ -66,7 +69,6 @@ def four_ft_result_s3_upload(clm, fourft_id):
     path = Path(__file__).parent / file_path
     with path.open("rb") as saved_file:  # Ensure binary mode
         s3 = get_boto_s3_client()
-        random_string = generate_random_string(32)
         s3_key = f'results/{random_string}'
 
         saved_file.seek(0)
@@ -78,3 +80,5 @@ def four_ft_result_s3_upload(clm, fourft_id):
     # **Delete the file after upload**
     if path.exists():
         path.unlink()
+    
+    return s3_key

@@ -9,13 +9,10 @@ from rest_framework.exceptions import NotFound
 
 from pathlib import Path
 
-from .models import Dataset
+from .models import Dataset, FourFtResult
 from .serializers import DatasetSerializer, FourFtMinerSerializer
 
 import pandas as pd
-
-from .utils.const import get_saved_result_path
-
 
 class DatasetApiView(APIView):
     parser_classes = (MultiPartParser,)
@@ -39,8 +36,8 @@ class DatasetApiView(APIView):
         '''
         List all the datasets
         '''
-        todos = Dataset.objects.all()
-        serializer = DatasetSerializer(todos, many=True)
+        datasets = Dataset.objects.all()
+        serializer = DatasetSerializer(datasets, many=True)
         data = serializer.data
         return Response(data, status=status.HTTP_200_OK)
 
@@ -132,3 +129,12 @@ class FourFtMinerView(APIView):
 
             return Response(rulelist, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request, *args, **kwargs):
+        '''
+        List all the four ft results
+        '''
+        four_ft_results = FourFtResult.objects.all()
+        serializer = FourFtMinerSerializer(four_ft_results, many=True)
+        data = serializer.data
+        return Response(data, status=status.HTTP_200_OK)

@@ -12,11 +12,11 @@ import {
   UseFormTrigger,
 } from 'react-hook-form';
 import { Dataset } from '@/api/dataset.ts';
-import { DatasetState, QuantifierField } from '@/routes/4ftminer/FourFtMiner.tsx';
-import FourFtQuantifiers from '@/routes/4ftminer/FourFtQuantifiers.tsx';
-import FourFtDatasetField from '@/routes/4ftminer/FourFtDatasetField.tsx';
-import Antecedents from '@/routes/4ftminer/Antecedents.tsx';
-import Succedents from '@/routes/4ftminer/Succedents.tsx';
+import { DatasetState, QuantifierField } from '@/containers/4ftminer/FourFtMiner.tsx';
+import FourFtQuantifiers from '@/containers/4ftminer/FourFtQuantifiers.tsx';
+import FourFtDatasetField from '@/containers/4ftminer/FourFtDatasetField.tsx';
+import Antecedents from '@/containers/4ftminer/Antecedents.tsx';
+import Succedents from '@/containers/4ftminer/Succedents.tsx';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
 interface Props<T extends FieldValues> {

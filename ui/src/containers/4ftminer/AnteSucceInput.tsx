@@ -1,4 +1,4 @@
-import { ComboboxHookFormWrapper, Value } from '@/components/form/ComboboxHookFormWrapper';
+import { ComboboxHookFormWrapper, Value } from '@/components/form/ComboboxHookFormWrapper.tsx';
 import {
   Control,
   FieldError,
@@ -7,13 +7,13 @@ import {
   UseFormRegister,
   UseFormSetValue,
 } from 'react-hook-form';
-import { capitalizeFirstLetter } from '@/utils/helperFunction';
-import TextInputField from '@/components/form/TextInputField';
-import { Label } from '@/components/ui/label';
-import { InfoIcon } from '@/components/ui/InfoIcon';
-import Selectbox from '@/components/form/Selectbox';
-import { cedentTypes } from '@/data/cedent';
-import SelectOption from '@/components/form/SelectOption';
+import { capitalizeFirstLetter } from '@/utils/helperFunction.ts';
+import TextInputField from '@/components/form/TextInputField.tsx';
+import { Label } from '@/components/ui/label.tsx';
+import { InfoIcon } from '@/components/ui/InfoIcon.tsx';
+import Selectbox from '@/components/form/Selectbox.tsx';
+import { cedentTypes } from '@/data/cedent.ts';
+import SelectOption from '@/components/form/SelectOption.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 

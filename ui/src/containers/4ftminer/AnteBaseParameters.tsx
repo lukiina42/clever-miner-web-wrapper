@@ -1,11 +1,11 @@
 import { FieldErrors, UseFormRegister } from 'react-hook-form';
-import { FourFtSchemaT } from './FourFtMiner';
-import TextInputField from '@/components/form/TextInputField';
-import { Label } from '@/components/ui/label';
-import { InfoIcon } from '@/components/ui/InfoIcon';
-import Selectbox from '@/components/form/Selectbox';
-import SelectOption from '@/components/form/SelectOption';
-import { cedentConDisTypes } from '@/data/cedent';
+import { FourFtSchemaT } from './FourFtMiner.tsx';
+import TextInputField from '@/components/form/TextInputField.tsx';
+import { Label } from '@/components/ui/label.tsx';
+import { InfoIcon } from '@/components/ui/InfoIcon.tsx';
+import Selectbox from '@/components/form/Selectbox.tsx';
+import SelectOption from '@/components/form/SelectOption.tsx';
+import { cedentConDisTypes } from '@/data/cedent.ts';
 
 type Props = {
   register: UseFormRegister<FourFtSchemaT>;

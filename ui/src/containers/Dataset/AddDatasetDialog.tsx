@@ -7,7 +7,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import AddDatasetForm from '@/routes/Dataset/AddDatasetForm.tsx';
+import AddDatasetForm from '@/containers/Dataset/AddDatasetForm.tsx';
 import { useState } from 'react';
 
 export default function AddDatasetDialog() {

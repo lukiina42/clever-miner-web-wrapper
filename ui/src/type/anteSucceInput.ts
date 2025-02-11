@@ -8,8 +8,8 @@ import {
   UseFormSetValue,
   UseFormTrigger,
 } from 'react-hook-form';
-import { DatasetState, FourFtSchemaT } from '@/routes/4ftminer/FourFtMiner.tsx';
-import { DatasetHeaderName } from '@/routes/4ftminer/FourFtForm.tsx';
+import { DatasetState, FourFtSchemaT } from '@/containers/4ftminer/FourFtMiner.tsx';
+import { DatasetHeaderName } from '@/containers/4ftminer/FourFtForm.tsx';
 import { ReactNode } from 'react';
 
 export type AnteSucceInputProps<T extends FieldValues> = {

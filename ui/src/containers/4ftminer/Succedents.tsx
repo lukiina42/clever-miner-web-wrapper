@@ -8,13 +8,13 @@ import {
   UseFormSetValue,
   UseFormTrigger,
 } from 'react-hook-form';
-import { DatasetState } from '@/routes/4ftminer/FourFtMiner.tsx';
-import { DatasetHeaderName } from '@/routes/4ftminer/FourFtForm.tsx';
-import AddAnteSucceDialog from '@/routes/4ftminer/AddAnteSucceDialog.tsx';
-import AnteSucceList from '@/routes/4ftminer/AnteSucceList.tsx';
+import { DatasetState } from '@/containers/4ftminer/FourFtMiner.tsx';
+import { DatasetHeaderName } from '@/containers/4ftminer/FourFtForm.tsx';
+import AddAnteSucceDialog from '@/containers/4ftminer/AddAnteSucceDialog.tsx';
+import AnteSucceList from '@/containers/4ftminer/AnteSucceList.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { displayNotification } from '@/utils/displayNotification.ts';
-import SucceBaseParameters from '@/routes/4ftminer/SucceBaseParameters.tsx';
+import SucceBaseParameters from '@/containers/4ftminer/SucceBaseParameters.tsx';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
 interface Props<T extends FieldValues> {
