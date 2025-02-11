@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from ..models import Dataset, FourFtResult, Cedent
+from cleverminer import cleverminer
 
-from ..utils.s3 import clm_s3_upload
+from ..utils.s3 import clm_s3_upload, create_presigned_url
 
+from django.conf import settings
 
 import re
 
@@ -50,6 +52,7 @@ class CedentSerializer(CamelCaseToSnakeCaseModelSerializer):
 class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     id=serializers.IntegerField(read_only=True)
     dataset_id = serializers.IntegerField()
+    s3_key = serializers.CharField(max_length=256, required=False, allow_null=True)
     base = serializers.IntegerField(min_value=1, max_value=1000000, required=False, allow_null=True)
     confidence = serializers.FloatField(max_value=1, required=False, allow_null=True)
     rel_base = serializers.FloatField(max_value=1, required=False, allow_null=True)
@@ -121,6 +124,13 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         Customize the GET response to separate antecedent and succedent.
         """
         representation = super().to_representation(instance)
+        
+        request = self.context.get("request", None)
+        request_params = request.parser_context["kwargs"]
+        
+        is_detail_request = False
+        if request_params.get("id") is not None or request_params.get("four_ft_id") is not None:
+            is_detail_request = True
 
         antecedents = instance.cedents.filter(role=Cedent.ANTECEDENT)
         succedents = instance.cedents.filter(role=Cedent.SUCCEDENT)
@@ -130,5 +140,13 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
 
         representation["antecedent"] = CedentSerializer(antecedents, many=True).data
         representation["succedent"] = CedentSerializer(succedents, many=True).data
-
+        
+        # TODO when it is not needed to instantiate clever miner first in order to load
+        # if is_detail_request:
+        #     presigned_url = create_presigned_url(settings.AWS_STORAGE_BUCKET_NAME, representation["s3_key"])
+        # 
+        #     clm = cleverminer().load(presigned_url)
+        #     
+        #     print(len(clm.rulelist))
+            
         return representation

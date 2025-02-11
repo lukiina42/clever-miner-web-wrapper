@@ -115,12 +115,11 @@ class FourFtMinerView(APIView):
 
 
 class FourFtResultDetailView(RetrieveAPIView):
-    queryset = FourFtResult.objects.prefetch_related("cedents")
+    queryset = FourFtResult.objects.all()
     serializer_class = FourFtMinerSerializer
     lookup_field = "id"  # Lookup by 'id'
 
 
-# TODO update
 class FourFtResultRuleDetailView(RetrieveAPIView):
     serializer_class = FourFtMinerSerializer  # Use appropriate serializer
 
@@ -138,9 +137,9 @@ class FourFtResultRuleDetailView(RetrieveAPIView):
         rule_id = self.kwargs.get("rule_id")
 
         # Filtering by both IDs
-        obj = queryset.filter(id=four_ft_id, rules__id=rule_id).first()
+        obj = queryset.filter(id=four_ft_id).first()
 
         if not obj:
-            raise NotFound("FourFtResult with this rule was not found.")
+            raise NotFound(f'FourFtResult with id ${four_ft_id} was not found.')
 
         return obj
