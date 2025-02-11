@@ -4,7 +4,7 @@ import { useState } from 'react';
 import PageHeading from '@/components/ui/PageHeading.tsx';
 import FourFtForm from '@/containers/4ftminer/FourFtForm.tsx';
 import { Dataset, useGetDatasets } from '@/api/dataset.ts';
-import { useCreateFourFt } from '@/api/fourft.ts';
+import { FourFtResultDetail, useCreateFourFt } from '@/api/fourft.ts';
 import FourFtResults from '@/containers/4ftminer/FourFtResults.tsx';
 import { Form } from '@/components/ui/form.tsx';
 import { anteSucceDefault } from '@/data/cedent.ts';
@@ -16,26 +16,44 @@ import {
 import { ChevronDown } from 'lucide-react';
 import { allQuantifierFields } from '@/data/quantifier.ts';
 import clsxm from '@/utils/clsxm.ts';
-import { fourftDefaultValues, fourftSchema, FourFtSchemaT } from '@/schema/fourFtForm.ts';
+import {
+  fourftDefaultValues,
+  fourftSchema,
+  FourFtSchemaT,
+  getValuesFromApi,
+} from '@/schema/fourFtForm.ts';
 
 export type DatasetState = {
   value: Dataset | undefined;
   errorMessage: string | undefined;
 };
 
-const initialDatasetState: DatasetState = {
-  value: undefined,
-  errorMessage: undefined,
-};
-
 export type QuantifierField = (typeof allQuantifierFields)[number];
 
-export default function FourFtMiner() {
+const fillQuantifiers = (data: FourFtResultDetail) => {
+  const quantifiers: QuantifierField[] = [];
+  if (data.base) quantifiers.push('base');
+  if (data.rel_base) quantifiers.push('relBase');
+  if (data.aad) quantifiers.push('aad');
+  if (data.confidence) quantifiers.push('confidence');
+  return quantifiers;
+};
+
+export default function FourFtMiner(props: { data: FourFtResultDetail | undefined }) {
+  const data = props.data;
+  const initialDatasetState: DatasetState = {
+    value: data?.dataset ?? undefined,
+    errorMessage: undefined,
+  };
+
+  const initialQuantifiers = data !== undefined ? fillQuantifiers(data) : [];
+
   const [currentDatasetState, setCurrentDatasetState] = useState<DatasetState>(initialDatasetState);
 
   const [formIsOpen, setFormIsOpen] = useState(true);
 
-  const [currentQuantifiers, setCurrentQuantifiers] = useState<QuantifierField[]>([]);
+  const [currentQuantifiers, setCurrentQuantifiers] =
+    useState<QuantifierField[]>(initialQuantifiers);
   const quantifierOptions = allQuantifierFields.filter(
     (field) => !currentQuantifiers.includes(field)
   );
@@ -71,9 +89,11 @@ export default function FourFtMiner() {
     }
   });
 
+  const defaultValues = data !== undefined ? getValuesFromApi(data) : fourftDefaultValues;
+
   const form = useZodForm({
     schema: schema,
-    defaultValues: fourftDefaultValues,
+    defaultValues: defaultValues,
     mode: 'onSubmit',
   });
 

@@ -4,7 +4,7 @@ import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import { Dispatch, SetStateAction } from 'react';
 
 // Define the Zod schema
-const datasetSchema = z.object({
+export const datasetSchema = z.object({
   created_at: z.string(),
   id: z.number(),
   name: z.string(),

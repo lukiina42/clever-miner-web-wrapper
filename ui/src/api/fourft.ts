@@ -3,6 +3,7 @@ import { Rule } from '@/containers/4ftminer/FourFtResults.tsx';
 import { baseApiUrl } from '@/utils/constants.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 import { z } from 'zod';
+import { Dataset, datasetSchema } from '@/api/dataset.ts';
 
 const fourFtBaseApiUrl = `${baseApiUrl}/fourftminer`;
 
@@ -43,11 +44,16 @@ export const useCreateFourFt = () =>
 
 // Define the Zod schema
 const cedentSchema = z.object({
+  id: z.number(),
   name: z.string(),
   type: z.string(),
   min_len: z.number(),
   max_len: z.number(),
 });
+
+type CedentApi = z.infer<typeof cedentSchema>;
+
+export type Cedent = Omit<CedentApi, 'id'> & { id: string };
 
 const fourFtResultSchema = z.object({
   id: z.number(),
@@ -67,13 +73,20 @@ const fourFtResultSchema = z.object({
   succedent: z.array(cedentSchema),
 });
 
+const fourFtResultDetailSchema = fourFtResultSchema.extend({
+  dataset: datasetSchema,
+});
+
 const fourFtArraySchema = z.array(fourFtResultSchema);
 
-type FourFtResultApi = z.infer<typeof fourFtResultSchema>;
+type FourFtResultDetailApi = z.infer<typeof fourFtResultDetailSchema>;
 
-export type FourFtResult = Omit<FourFtResultApi, 'id'> & { id: string };
+export type FourFtResultDetail = Omit<FourFtResultDetailApi, 'id' | 'dataset'> & {
+  id: string;
+  dataset: Dataset;
+};
 
-const fetchFourFtResult = async (fourFtResultId: string): Promise<FourFtResult> => {
+const fetchFourFtResult = async (fourFtResultId: string): Promise<FourFtResultDetail> => {
   const fetchResult = await fetch(fourFtDetailApiUrl(fourFtResultId));
   const data = await fetchResult.json();
 
@@ -87,8 +100,16 @@ const fetchFourFtResult = async (fourFtResultId: string): Promise<FourFtResult> 
   return {
     ...data,
     id: data.id.toString(),
+    dataset: {
+      ...data.dataset,
+      id: data.dataset.id.toString(),
+    },
   };
 };
+
+type FourFtResultApi = z.infer<typeof fourFtResultSchema>;
+
+export type FourFtResult = Omit<FourFtResultApi, 'id'> & { id: string };
 
 const fetchFourFtResults = async (): Promise<FourFtResult[]> => {
   const fetchResult = await fetch(fourFtBaseApiUrl);

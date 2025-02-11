@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { fourFtResultQueryOptions } from '@/api/fourft.ts';
+import FourFtMiner from '@/containers/4ftminer/FourFtMiner.tsx';
 
 export const Route = createFileRoute('/fourft/$fourftId')({
   component: FourFtDetail,
@@ -13,5 +14,5 @@ function FourFtDetail() {
 
   console.log(fourFtResult);
 
-  return <div>Four ft detail xd</div>;
+  return <FourFtMiner data={fourFtResult.data} />;
 }

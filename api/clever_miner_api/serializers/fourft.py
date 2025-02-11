@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from .dataset import DatasetSerializer
 from ..models import Dataset, FourFtResult, Cedent
 from cleverminer import cleverminer
 
@@ -46,7 +48,7 @@ class CamelCaseToSnakeCaseSerializer(serializers.Serializer):
 class CedentSerializer(CamelCaseToSnakeCaseModelSerializer):
     class Meta:
         model = Cedent
-        fields = ["name", "type", "min_len", "max_len"]
+        fields = ["name", "type", "min_len", "max_len", "id"]
 
 
 class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
@@ -131,7 +133,7 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         is_detail_request = False
         if request_params.get("id") is not None or request_params.get("four_ft_id") is not None:
             is_detail_request = True
-
+            
         antecedents = instance.cedents.filter(role=Cedent.ANTECEDENT)
         succedents = instance.cedents.filter(role=Cedent.SUCCEDENT)
 
@@ -141,12 +143,14 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         representation["antecedent"] = CedentSerializer(antecedents, many=True).data
         representation["succedent"] = CedentSerializer(succedents, many=True).data
         
-        # TODO when it is not needed to instantiate clever miner first in order to load
-        # if is_detail_request:
-        #     presigned_url = create_presigned_url(settings.AWS_STORAGE_BUCKET_NAME, representation["s3_key"])
-        # 
-        #     clm = cleverminer().load(presigned_url)
-        #     
-        #     print(len(clm.rulelist))
+        if is_detail_request:
+            # TODO when it is not needed to instantiate clever miner first in order to load
+            # presigned_url = create_presigned_url(settings.AWS_STORAGE_BUCKET_NAME, representation["s3_key"])
+            # 
+            # clm = cleverminer().load(presigned_url)
+            # 
+            # print(len(clm.rulelist))
+            dataset = Dataset.objects.get(id=instance.dataset_id)
+            representation['dataset'] = DatasetSerializer(dataset).data
             
         return representation
