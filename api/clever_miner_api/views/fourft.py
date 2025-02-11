@@ -1,46 +1,19 @@
-# api/clever_miner_api/views.py
 from cleverminer import cleverminer
 from drf_spectacular.utils import extend_schema
 from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 
 from pathlib import Path
 
-from .models import Dataset, FourFtResult
-from .serializers import DatasetSerializer, FourFtMinerSerializer
+from ..models import Dataset, FourFtResult
+from ..serializers.dataset import DatasetSerializer
+from ..serializers.fourft import FourFtMinerSerializer
 
 import pandas as pd
-
-class DatasetApiView(APIView):
-    parser_classes = (MultiPartParser,)
-
-    # add permission to check if user is authenticated
-    # permission_classes = [permissions.IsAuthenticated]
-
-    @extend_schema(
-        request=DatasetSerializer,
-        responses={204: None},
-        methods=["POST"]
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = DatasetSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get(self, request, *args, **kwargs):
-        '''
-        List all the datasets
-        '''
-        datasets = Dataset.objects.all()
-        serializer = DatasetSerializer(datasets, many=True)
-        data = serializer.data
-        return Response(data, status=status.HTTP_200_OK)
-
 
 class FourFtMinerView(APIView):
     def post(self, request, *args, **kwargs):
@@ -129,7 +102,7 @@ class FourFtMinerView(APIView):
 
             return Response(rulelist, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def get(self, request, *args, **kwargs):
         '''
         List all the four ft results
@@ -138,3 +111,36 @@ class FourFtMinerView(APIView):
         serializer = FourFtMinerSerializer(four_ft_results, many=True)
         data = serializer.data
         return Response(data, status=status.HTTP_200_OK)
+
+
+
+class FourFtResultDetailView(RetrieveAPIView):
+    queryset = FourFtResult.objects.prefetch_related("cedents")
+    serializer_class = FourFtMinerSerializer
+    lookup_field = "id"  # Lookup by 'id'
+
+
+# TODO update
+class FourFtResultRuleDetailView(RetrieveAPIView):
+    serializer_class = FourFtMinerSerializer  # Use appropriate serializer
+
+    def get_queryset(self):
+        return FourFtResult.objects.all()  # Define base queryset
+
+    def get_object(self):
+        """
+        Retrieve a specific FourFtResult by ID and ensure it has the given rule ID.
+        """
+        queryset = self.get_queryset()
+
+        # Extracting values from the URL
+        four_ft_id = self.kwargs.get("four_ft_id")
+        rule_id = self.kwargs.get("rule_id")
+
+        # Filtering by both IDs
+        obj = queryset.filter(id=four_ft_id, rules__id=rule_id).first()
+
+        if not obj:
+            raise NotFound("FourFtResult with this rule was not found.")
+
+        return obj

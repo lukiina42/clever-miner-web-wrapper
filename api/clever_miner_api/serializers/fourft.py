@@ -1,31 +1,28 @@
 from rest_framework import serializers
-from .models import Dataset, FourFtResult, Cedent
-from django.conf import settings
+from ..models import Dataset, FourFtResult, Cedent
 
-from .utils.s3 import create_presigned_url, get_boto_s3_client, dataset_s3_upload, clm_s3_upload
+from ..utils.s3 import clm_s3_upload
 
-import pandas as pd
 
 import re
 
-def get_delimiter(value):
-    match value.lower():
-        case 'tab':
-            return '\t'
-        case 'space':
-            return ' '
-        case 'comma':
-            return ','
-        case 'semicolon':
-            return ';'
-        case 'pipe':
-            return '|'
-        case 'slash':
-            return '/'
-        case _:
-            return value
+class CamelCaseToSnakeCaseModelSerializer(serializers.ModelSerializer):
+    """
+    A base serializer that converts camelCase keys in incoming data to snake_case.
+    """
 
+    def to_internal_value(self, data):
+        # Convert camelCase keys to snake_case
+        snake_case_data = {}
+        for key, value in data.items():
+            snake_case_key = self.camel_to_snake(key)
+            snake_case_data[snake_case_key] = value
+        return super().to_internal_value(snake_case_data)
 
+    @staticmethod
+    def camel_to_snake(name):
+        return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
+    
 class CamelCaseToSnakeCaseSerializer(serializers.Serializer):
     """
     A base serializer that converts camelCase keys in incoming data to snake_case.
@@ -43,66 +40,15 @@ class CamelCaseToSnakeCaseSerializer(serializers.Serializer):
     def camel_to_snake(name):
         return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
 
-class DatasetSerializer(serializers.ModelSerializer):
-    file = serializers.FileField(write_only=True, required=True)
-    delimiter = serializers.CharField(max_length=16)
 
+class CedentSerializer(CamelCaseToSnakeCaseModelSerializer):
     class Meta:
-        model = Dataset
-        fields = ['id', 's3_key', 'file', 'created_at', 'name', 'delimiter', 'rows_count', 'columns_count']
-        read_only_fields = ['s3_key', 'created_at', 'name', 'rows_count', 'columns_count']
-
-    def create(self, validated_data):
-        file = validated_data.pop('file')
-
-        if not file or file.size == 0:
-            raise serializers.ValidationError("Uploaded file is empty or invalid.")
-
-        delimiter_name = validated_data.get('delimiter')
-
-        delimiter = get_delimiter(delimiter_name)
-
-        df = pd.read_csv(file, encoding='cp1250', sep=delimiter)
-
-        rows_count = len(df.axes[0])
-        columns_count = len(df.axes[1])
-
-        # Upload the file to S3
-        s3_key = dataset_s3_upload(file)
-
-        # Save the dataset information in the database
-        dataset = Dataset(name=file.name, s3_key=s3_key, delimiter=delimiter, rows_count=rows_count,
-                          columns_count=columns_count)
-        dataset.save()
-
-        return dataset
-
-    def to_representation(self, obj):
-        representation = super().to_representation(obj)
-
-        # Cache the result of get_url
-        presigned_url = create_presigned_url(settings.AWS_STORAGE_BUCKET_NAME, obj.s3_key)
-
-        file = pd.read_csv(presigned_url, encoding='cp1250', sep=obj.delimiter)
-        representation['url'] = presigned_url
-        columns = list(file.columns)
-        # map columns and trim spaces around the header names
-        representation['header_names'] = list(map(lambda x: x.strip(), columns))
-
-        return representation
-
-    def get_url(self, obj):
-        return create_presigned_url(settings.AWS_STORAGE_BUCKET_NAME, obj.s3_key)
-
-
-class AnteSucceSerializer(CamelCaseToSnakeCaseSerializer):
-    name = serializers.CharField(max_length=256)
-    type = serializers.CharField(max_length=256)
-    min_len = serializers.IntegerField(min_value=1)
-    max_len = serializers.IntegerField(min_value=1)
+        model = Cedent
+        fields = ["name", "type", "min_len", "max_len"]
 
 
 class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
+    id=serializers.IntegerField(read_only=True)
     dataset_id = serializers.IntegerField()
     base = serializers.IntegerField(min_value=1, max_value=1000000, required=False, allow_null=True)
     confidence = serializers.FloatField(max_value=1, required=False, allow_null=True)
@@ -114,8 +60,14 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     succe_max_len = serializers.IntegerField(min_value=1, max_value=128)
     con_dis_antecedent_type = serializers.CharField(max_length=256)
     con_dis_succedent_type = serializers.CharField(max_length=256)
-    antecedent = AnteSucceSerializer(many=True)
-    succedent = AnteSucceSerializer(many=True)
+
+    # Used for POST (create) requests
+    antecedent = CedentSerializer(many=True, write_only=True)
+    succedent = CedentSerializer(many=True, write_only=True)
+
+    class Meta:
+        model = FourFtResult
+        fields = "__all__"
 
     def create(self, validated_data):
         clm = validated_data.pop('clm', None)
@@ -128,11 +80,11 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             dataset = Dataset.objects.get(id=dataset_id)
         except Dataset.DoesNotExist:
             raise serializers.ValidationError({"dataset_id": f"Dataset with id {dataset_id} not found."})
-        
+
         s3_key = None
         if len(clm.rulelist) > 0:
             s3_key = clm_s3_upload(clm)
-            
+
         validated_data.update({'s3_key': s3_key})
 
         # Create the FourFtResult instance
@@ -163,3 +115,20 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         ])
 
         return four_ft_result
+
+    def to_representation(self, instance):
+        """
+        Customize the GET response to separate antecedent and succedent.
+        """
+        representation = super().to_representation(instance)
+
+        antecedents = instance.cedents.filter(role=Cedent.ANTECEDENT)
+        succedents = instance.cedents.filter(role=Cedent.SUCCEDENT)
+
+        antecedents = CedentSerializer(antecedents, many=True).data
+        succedents = CedentSerializer(succedents, many=True).data
+
+        representation["antecedent"] = CedentSerializer(antecedents, many=True).data
+        representation["succedent"] = CedentSerializer(succedents, many=True).data
+
+        return representation

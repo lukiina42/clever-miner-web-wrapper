@@ -1,7 +1,10 @@
 from django.urls import path
-from .views import (DatasetApiView, FourFtMinerView)
+
+from .views.dataset import DatasetApiView
+from .views.fourft import FourFtMinerView, FourFtResultDetailView
 
 urlpatterns = [
     path('dataset', DatasetApiView.as_view()),
-    path('fourftminer', FourFtMinerView.as_view())
+    path('fourftminer', FourFtMinerView.as_view()),
+    path('fourftminer/<int:id>/', FourFtResultDetailView.as_view()),
 ]
