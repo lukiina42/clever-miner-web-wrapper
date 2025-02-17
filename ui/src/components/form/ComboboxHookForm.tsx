@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils.ts';
 import { useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loadingSpinner.tsx';
+import { Portal } from '@radix-ui/react-dialog';
 
 interface Value {
   id: string;
@@ -57,12 +58,12 @@ export function ComboboxHookForm({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
-        <Command>
+      <PopoverContent className="w-[300px] p-0" forceMount={true}>
+        <Command className={'overflow-y-auto'}>
           <CommandInput placeholder="Search option..." />
           <CommandEmpty>{`No ${optionName} found.`}</CommandEmpty>
-          <CommandList>
-            <CommandGroup>
+          <CommandList className={'overflow-y-auto max-h-[400px]'}>
+            <CommandGroup className={'overflow-y-auto'}>
               {options?.map((option) => {
                 return (
                   <CommandItem

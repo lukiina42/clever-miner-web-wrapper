@@ -2,11 +2,9 @@ from rest_framework import serializers
 
 from .dataset import DatasetSerializer
 from ..models import Dataset, FourFtResult, Cedent
-from cleverminer import cleverminer
 
-from ..utils.s3 import clm_s3_upload, create_presigned_url
-
-from django.conf import settings
+from ..utils.clm_init import clm_init
+from ..utils.s3 import clm_s3_upload, create_presigned_url, download_s3_file
 
 import re
 
@@ -121,10 +119,77 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
 
         return four_ft_result
 
+
+    def update(self, instance, validated_data):
+        """
+        Update an existing FourFtResult instance:
+        - Remove all existing Cedents
+        - Recreate new Cedents based on updated data
+        - Optionally re-run the cleverminer process if needed
+        """
+
+        clm = validated_data.pop('clm', None)
+
+        # Extract related data from the validated data
+        antecedents = validated_data.pop('antecedent', [])
+        succedents = validated_data.pop('succedent', [])
+        dataset_id = validated_data.pop('dataset_id', instance.dataset.id)  # Keep existing dataset if not changed
+
+        # Update fields of the instance
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Fetch dataset if changed
+        if dataset_id != instance.dataset.id:
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                instance.dataset = dataset
+            except Dataset.DoesNotExist:
+                raise serializers.ValidationError({"dataset_id": f"Dataset with id {dataset_id} not found."})
+
+        # Remove all existing cedents for the current result
+        Cedent.objects.filter(four_ft_result=instance).delete()
+
+        # Recreate new Cedent instances for antecedents
+        Cedent.objects.bulk_create([
+            Cedent(
+                name=antecedent['name'],
+                type=antecedent['type'],
+                min_len=antecedent['min_len'],
+                max_len=antecedent['max_len'],
+                role=Cedent.ANTECEDENT,
+                four_ft_result=instance
+            ) for antecedent in antecedents
+        ])
+
+        # Recreate new Cedent instances for succedents
+        Cedent.objects.bulk_create([
+            Cedent(
+                name=succedent['name'],
+                type=succedent['type'],
+                min_len=succedent['min_len'],
+                max_len=succedent['max_len'],
+                role=Cedent.SUCCEDENT,
+                four_ft_result=instance
+            ) for succedent in succedents
+        ])
+
+        s3_key = None
+        if len(clm.rulelist) > 0:
+            s3_key = clm_s3_upload(clm, instance.s3_key)
+
+        validated_data.update({'s3_key': s3_key})
+
+        # Save updated instance
+        instance.save()
+
+        return instance
+
     def to_representation(self, instance):
         """
         Customize the GET response to separate antecedent and succedent.
         """
+
         representation = super().to_representation(instance)
         
         request = self.context.get("request", None)
@@ -142,14 +207,13 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
 
         representation["antecedent"] = CedentSerializer(antecedents, many=True).data
         representation["succedent"] = CedentSerializer(succedents, many=True).data
+
+        s3_key = representation["s3_key"]
         
-        if is_detail_request:
-            # TODO when it is not needed to instantiate clever miner first in order to load
-            # presigned_url = create_presigned_url(settings.AWS_STORAGE_BUCKET_NAME, representation["s3_key"])
-            # 
-            # clm = cleverminer().load(presigned_url)
-            # 
-            # print(len(clm.rulelist))
+        if is_detail_request and s3_key is not None:
+            clm = clm_init(s3_key)
+            clm.print_rulelist()
+            
             dataset = Dataset.objects.get(id=instance.dataset_id)
             representation['dataset'] = DatasetSerializer(dataset).data
             

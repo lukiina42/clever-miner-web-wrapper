@@ -57,11 +57,11 @@ export function Combobox({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
-        <Command>
+      <PopoverContent className="w-[300px] p-0 overflow-y-auto">
+        <Command className={'overflow-y-auto'}>
           <CommandInput placeholder="Search option..." />
           <CommandEmpty>{`No ${optionName} found.`}</CommandEmpty>
-          <CommandList>
+          <CommandList className={'overflow-y-auto'}>
             <CommandGroup>
               {options?.map((option) => {
                 return (

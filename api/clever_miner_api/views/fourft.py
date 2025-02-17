@@ -1,13 +1,9 @@
 from cleverminer import cleverminer
-from drf_spectacular.utils import extend_schema
-from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound
-
-from pathlib import Path
 
 from ..models import Dataset, FourFtResult
 from ..serializers.dataset import DatasetSerializer
@@ -19,6 +15,7 @@ class FourFtMinerView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = FourFtMinerSerializer(data=request.data)
         if serializer.is_valid():
+            
             validated_data = serializer.validated_data
             dataset_id = validated_data['dataset_id']
             base = validated_data['base']
@@ -90,17 +87,13 @@ class FourFtMinerView(APIView):
                 }
             )
 
-            rulelist = clm.rulelist
-            for rule in rulelist:
-                rule['ruletext'] = clm.get_ruletext(rule['rule_id'])
-
             # Save to db
-            serializer.save(clm=clm)
+            result = serializer.save(clm=clm)
 
             # draw_rule = clm.draw_rule(1)
             # clm.load(get_saved_result_path(23))
 
-            return Response(rulelist, status=status.HTTP_200_OK)
+            return Response({'id': result.id}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, *args, **kwargs):
@@ -114,10 +107,104 @@ class FourFtMinerView(APIView):
 
 
 
-class FourFtResultDetailView(RetrieveAPIView):
-    queryset = FourFtResult.objects.all()
-    serializer_class = FourFtMinerSerializer
-    lookup_field = "id"  # Lookup by 'id'
+class FourFtResultDetailView(APIView):
+    def get(self, request, id, *args, **kwargs):
+        try:
+            instance = FourFtResult.objects.get(id=id)
+            serializer = FourFtMinerSerializer(instance, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except FourFtResult.DoesNotExist:
+            return Response({"error": f'Four ft result with id ${id} not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, id, *args, **kwargs):
+        try:
+            instance = FourFtResult.objects.get(id=id)  # Fetch the existing object
+        except FourFtResult.DoesNotExist:
+            return Response({"error": f'Four ft result with id ${id} not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = FourFtMinerSerializer(instance, data=request.data, partial=False)  # Full update
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
+            dataset_id = validated_data['dataset_id']
+            base = validated_data['base']
+            confidence = validated_data['confidence']
+            rel_base = validated_data['rel_base']
+            aad = validated_data['aad']
+            antecedents = validated_data.get('antecedent', [])
+            succedents = validated_data.get('succedent', [])
+            ante_min_len = validated_data.get('ante_min_len')
+            ante_max_len = validated_data.get('ante_max_len')
+            succe_min_len = validated_data.get('succe_min_len')
+            succe_max_len = validated_data.get('succe_max_len')
+            con_dis_antecedent_type = validated_data.get('con_dis_antecedent_type')
+            con_dis_succedent_type = validated_data.get('con_dis_succedent_type')
+
+            antecedent_attributes = [
+                {
+                    'name': antecedent['name'],
+                    'type': antecedent['type'],
+                    'minlen': antecedent['min_len'],
+                    'maxlen': antecedent['max_len']
+                }
+                for antecedent in antecedents
+            ]
+
+            succedent_attributes = [
+                {
+                    'name': succedent['name'],
+                    'type': succedent['type'],
+                    'minlen': succedent['min_len'],
+                    'maxlen': succedent['max_len']
+                }
+                for succedent in succedents
+            ]
+
+            # Fetch the dataset by dataset_id
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+            except Dataset.DoesNotExist:
+                return Response({"error": f"Dataset with id {dataset_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Use get_url method from DatasetSerializer to get the presigned URL
+            signed_url = DatasetSerializer(dataset).get_url(dataset)
+            file = pd.read_csv(signed_url, encoding='cp1250', sep=dataset.delimiter)
+
+            quantifiers = {
+                'confidence': confidence,
+                'aad': aad,
+                'Base': base,
+                'relbase': rel_base
+            }
+
+            quantifiers = {key: value for key, value in quantifiers.items() if value is not None}
+
+            if len(quantifiers) == 0:
+                quantifiers = {'Base': 0}
+
+            clm = cleverminer(
+                df=file,
+                proc='4ftMiner',
+                quantifiers=quantifiers,
+                ante={
+                    'attributes': antecedent_attributes, 'minlen': ante_min_len, 'maxlen': ante_max_len,
+                    'type': con_dis_antecedent_type
+                },
+                succ={
+                    'attributes': succedent_attributes, 'minlen': succe_min_len, 'maxlen': succe_max_len,
+                    'type': con_dis_succedent_type
+                }
+            )
+
+            rulelist = clm.rulelist
+            for rule in rulelist:
+                rule['ruletext'] = clm.get_ruletext(rule['rule_id'])
+
+            # Save updated data to db
+            serializer.save(clm=clm)
+
+            return Response(rulelist, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FourFtResultRuleDetailView(RetrieveAPIView):

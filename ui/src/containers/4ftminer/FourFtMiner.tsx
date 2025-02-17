@@ -4,7 +4,7 @@ import { useState } from 'react';
 import PageHeading from '@/components/ui/PageHeading.tsx';
 import FourFtForm from '@/containers/4ftminer/FourFtForm.tsx';
 import { Dataset, useGetDatasets } from '@/api/dataset.ts';
-import { FourFtResultDetail, useCreateFourFt } from '@/api/fourft.ts';
+import { FourFtResultDetail, useCreateFourFt, useFullUpdateFourFt } from '@/api/fourft.ts';
 import FourFtResults from '@/containers/4ftminer/FourFtResults.tsx';
 import { Form } from '@/components/ui/form.tsx';
 import { anteSucceDefault } from '@/data/cedent.ts';
@@ -22,6 +22,8 @@ import {
   FourFtSchemaT,
   getValuesFromApi,
 } from '@/schema/fourFtForm.ts';
+import { useNavigate } from '@tanstack/react-router';
+import { ClipLoader } from 'react-spinners';
 
 export type DatasetState = {
   value: Dataset | undefined;
@@ -45,6 +47,8 @@ export default function FourFtMiner(props: { data: FourFtResultDetail | undefine
     value: data?.dataset ?? undefined,
     errorMessage: undefined,
   };
+
+  const navigate = useNavigate();
 
   const initialQuantifiers = data !== undefined ? fillQuantifiers(data) : [];
 
@@ -137,7 +141,8 @@ export default function FourFtMiner(props: { data: FourFtResultDetail | undefine
     addAnteSucceToEnd();
   };
 
-  const processFourFtRequestMutation = useCreateFourFt();
+  const processFourFtRequestMutation =
+    data !== undefined ? useFullUpdateFourFt(data.id) : useCreateFourFt(navigate);
 
   const datasetsQueryResponse = useGetDatasets();
 
@@ -192,10 +197,17 @@ export default function FourFtMiner(props: { data: FourFtResultDetail | undefine
           <span className="sr-only">{formIsOpen ? 'Close form' : 'Open form'}</span>
         </CollapsibleTrigger>
       </Collapsible>
-      <FourFtResults
-        rules={processFourFtRequestMutation.data}
-        isLoading={processFourFtRequestMutation.isPending}
-      />
+      {processFourFtRequestMutation.isPending && (
+        <div className={'w-full h-full flex justify-center items-center'}>
+          <ClipLoader size={64} />
+        </div>
+      )}
+      {/*{data !== undefined && (*/}
+      {/*  <FourFtResults*/}
+      {/*    rules={processFourFtRequestMutation.data}*/}
+      {/*    isLoading={processFourFtRequestMutation.isPending}*/}
+      {/*  />*/}
+      {/*)}*/}
     </div>
   );
 }

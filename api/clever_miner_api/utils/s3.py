@@ -57,11 +57,13 @@ def dataset_s3_upload(file):
     
     return s3_key
 
-# Procedure means 4ft, CF, Sd4ft miners, etc.
-def clm_s3_upload(clm):
-    random_string = generate_random_string(32)
-    
-    result_path = get_saved_result_path(random_string)
+def clm_s3_upload(clm: str, s3_key: str = None):
+    if s3_key is None:  
+        key = generate_random_string(32)
+    else:
+        key = s3_key
+
+    result_path = get_saved_result_path(key)
 
     clm.save(result_path)
 
@@ -69,7 +71,7 @@ def clm_s3_upload(clm):
     path = Path(__file__).parent / file_path
     with path.open("rb") as saved_file:  # Ensure binary mode
         s3 = get_boto_s3_client()
-        s3_key = f'results/{random_string}'
+        s3_key = f'results/{key}'
 
         saved_file.seek(0)
 
@@ -77,8 +79,11 @@ def clm_s3_upload(clm):
             'ContentType': 'application/octet-stream',
         }, )
 
-    # **Delete the file after upload**
     if path.exists():
         path.unlink()
     
     return s3_key
+
+def download_s3_file(s3_key, save_path):
+    s3 = get_boto_s3_client()
+    s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, s3_key, save_path)

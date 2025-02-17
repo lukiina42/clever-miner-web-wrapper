@@ -89,25 +89,31 @@ export const getValuesFromApi = (data: FourFtResultDetail): FourFtSchemaT => {
     conDisAntecedentType: data.con_dis_antecedent_type,
     conDisSuccedentType: data.con_dis_succedent_type,
     //move to function... or not
-    antecedent: data.antecedent.map((cedent) => {
-      return {
-        name: cedent.name,
-        id: cedent.id.toString(),
-        minLen: cedent.min_len.toString(),
-        maxLen: cedent.max_len.toString(),
-        type: cedent.type,
-        isValid: true,
-      };
-    }),
-    succedent: data.succedent.map((cedent) => {
-      return {
-        name: cedent.name,
-        id: cedent.id.toString(),
-        minLen: cedent.min_len.toString(),
-        maxLen: cedent.max_len.toString(),
-        type: cedent.type,
-        isValid: true,
-      };
-    }),
+    antecedent: [
+      ...data.antecedent.map((cedent) => {
+        return {
+          name: cedent.name,
+          id: cedent.id.toString(),
+          minLen: cedent.min_len.toString(),
+          maxLen: cedent.max_len.toString(),
+          type: cedent.type,
+          isValid: true,
+        };
+      }),
+      anteSucceDefault,
+    ],
+    succedent: [
+      ...data.succedent.map((cedent) => {
+        return {
+          name: cedent.name,
+          id: cedent.id.toString(),
+          minLen: cedent.min_len.toString(),
+          maxLen: cedent.max_len.toString(),
+          type: cedent.type,
+          isValid: true,
+        };
+      }),
+      anteSucceDefault,
+    ],
   } satisfies FourFtSchemaT;
 };

@@ -12,7 +12,5 @@ function FourFtDetail() {
 
   const fourFtResult = useSuspenseQuery(fourFtResultQueryOptions(fourftId));
 
-  console.log(fourFtResult);
-
   return <FourFtMiner data={fourFtResult.data} />;
 }
