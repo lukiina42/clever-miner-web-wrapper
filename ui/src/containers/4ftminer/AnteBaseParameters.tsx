@@ -1,5 +1,5 @@
 import { FieldErrors, UseFormRegister } from 'react-hook-form';
-import { FourFtSchemaT } from './FourFtMiner.tsx';
+import { FourFtSchemaT } from './FourFtMinerUpdate.tsx';
 import TextInputField from '@/components/form/TextInputField.tsx';
 import { Label } from '@/components/ui/label.tsx';
 import { InfoIcon } from '@/components/ui/InfoIcon.tsx';

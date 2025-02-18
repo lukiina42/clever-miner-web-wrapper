@@ -13,8 +13,8 @@
 import { Route as rootRoute } from './routes/__root';
 import { Route as DatasetsImport } from './routes/datasets';
 import { Route as IndexImport } from './routes/index';
-import { Route as FourftIndexImport } from './routes/fourft.index';
 import { Route as FourftFourftIdImport } from './routes/fourft.$fourftId';
+import { Route as FourftCreateIndexImport } from './routes/fourft.create.index';
 
 // Create/Update Routes
 
@@ -30,15 +30,15 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any);
 
-const FourftIndexRoute = FourftIndexImport.update({
-  id: '/fourft/',
-  path: '/fourft/',
-  getParentRoute: () => rootRoute,
-} as any);
-
 const FourftFourftIdRoute = FourftFourftIdImport.update({
   id: '/fourft/$fourftId',
   path: '/fourft/$fourftId',
+  getParentRoute: () => rootRoute,
+} as any);
+
+const FourftCreateIndexRoute = FourftCreateIndexImport.update({
+  id: '/fourft/create/',
+  path: '/fourft/create/',
   getParentRoute: () => rootRoute,
 } as any);
 
@@ -67,11 +67,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FourftFourftIdImport;
       parentRoute: typeof rootRoute;
     };
-    '/fourft/': {
-      id: '/fourft/';
-      path: '/fourft';
-      fullPath: '/fourft';
-      preLoaderRoute: typeof FourftIndexImport;
+    '/fourft/create/': {
+      id: '/fourft/create/';
+      path: '/fourft/create';
+      fullPath: '/fourft/create';
+      preLoaderRoute: typeof FourftCreateIndexImport;
       parentRoute: typeof rootRoute;
     };
   }
@@ -83,14 +83,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
   '/datasets': typeof DatasetsRoute;
   '/fourft/$fourftId': typeof FourftFourftIdRoute;
-  '/fourft': typeof FourftIndexRoute;
+  '/fourft/create': typeof FourftCreateIndexRoute;
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
   '/datasets': typeof DatasetsRoute;
   '/fourft/$fourftId': typeof FourftFourftIdRoute;
-  '/fourft': typeof FourftIndexRoute;
+  '/fourft/create': typeof FourftCreateIndexRoute;
 }
 
 export interface FileRoutesById {
@@ -98,15 +98,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute;
   '/datasets': typeof DatasetsRoute;
   '/fourft/$fourftId': typeof FourftFourftIdRoute;
-  '/fourft/': typeof FourftIndexRoute;
+  '/fourft/create/': typeof FourftCreateIndexRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: '/' | '/datasets' | '/fourft/$fourftId' | '/fourft';
+  fullPaths: '/' | '/datasets' | '/fourft/$fourftId' | '/fourft/create';
   fileRoutesByTo: FileRoutesByTo;
-  to: '/' | '/datasets' | '/fourft/$fourftId' | '/fourft';
-  id: '__root__' | '/' | '/datasets' | '/fourft/$fourftId' | '/fourft/';
+  to: '/' | '/datasets' | '/fourft/$fourftId' | '/fourft/create';
+  id: '__root__' | '/' | '/datasets' | '/fourft/$fourftId' | '/fourft/create/';
   fileRoutesById: FileRoutesById;
 }
 
@@ -114,14 +114,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   DatasetsRoute: typeof DatasetsRoute;
   FourftFourftIdRoute: typeof FourftFourftIdRoute;
-  FourftIndexRoute: typeof FourftIndexRoute;
+  FourftCreateIndexRoute: typeof FourftCreateIndexRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DatasetsRoute: DatasetsRoute,
   FourftFourftIdRoute: FourftFourftIdRoute,
-  FourftIndexRoute: FourftIndexRoute,
+  FourftCreateIndexRoute: FourftCreateIndexRoute,
 };
 
 export const routeTree = rootRoute
@@ -137,7 +137,7 @@ export const routeTree = rootRoute
         "/",
         "/datasets",
         "/fourft/$fourftId",
-        "/fourft/"
+        "/fourft/create/"
       ]
     },
     "/": {
@@ -149,8 +149,8 @@ export const routeTree = rootRoute
     "/fourft/$fourftId": {
       "filePath": "fourft.$fourftId.tsx"
     },
-    "/fourft/": {
-      "filePath": "fourft.index.tsx"
+    "/fourft/create/": {
+      "filePath": "fourft.create.index.tsx"
     }
   }
 }

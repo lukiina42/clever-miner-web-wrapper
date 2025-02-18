@@ -12,7 +12,7 @@ import {
   UseFormTrigger,
 } from 'react-hook-form';
 import { Dataset } from '@/api/dataset.ts';
-import { DatasetState, QuantifierField } from '@/containers/4ftminer/FourFtMiner.tsx';
+import { DatasetState, QuantifierField } from '@/containers/4ftminer/FourFtMinerUpdate.tsx';
 import FourFtQuantifiers from '@/containers/4ftminer/FourFtQuantifiers.tsx';
 import FourFtDatasetField from '@/containers/4ftminer/FourFtDatasetField.tsx';
 import Antecedents from '@/containers/4ftminer/Antecedents.tsx';
@@ -70,15 +70,6 @@ export default function FourFtForm({
     return headerNames.map((headerName) => ({ id: headerName, name: headerName }));
   }, [currentDataset]);
 
-  // const {
-  //   fields: succedentFields,
-  //   append: appendSuccedent,
-  //   remove: removeSuccedent,
-  // } = useFieldArray({
-  //   name: 'succedent',
-  //   control,
-  // });
-
   const onSubmitCheck = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const antecedents = getValues('antecedent');
@@ -96,7 +87,7 @@ export default function FourFtForm({
   };
 
   return (
-    <div className={'h-full pt-4 border-gray-200'}>
+    <div className={'h-full w-full pt-4 border-gray-200'}>
       <form className={'px-4 flex flex-col items-start w-full'} onSubmit={onSubmitCheck}>
         <FourFtDatasetField
           datasets={datasets}
@@ -105,7 +96,11 @@ export default function FourFtForm({
           datasetsLoading={datasetsLoading}
           setValue={setValue}
         />
-        <div className={'pt-8 flex w-full justify-center gap-32'}>
+        <div
+          className={
+            'pt-8 flex flex-col md:flex-row w-full items-center md:justify-center md:items-start gap-12 md:gap-8 lg:gap-12 xl:gap-24'
+          }
+        >
           <Antecedents
             errors={errors}
             register={register}
@@ -136,7 +131,7 @@ export default function FourFtForm({
             trigger={trigger}
           />
         </div>
-        <div className="w-full flex items-start justify-end pr-6 pt-6">
+        <div className="w-full flex items-start justify-end pr-6 pt-12">
           <Button
             disabled={isLoading}
             type={'submit'}

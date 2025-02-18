@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z, ZodObject } from 'zod';
 import {
   ComboboxStringMandatory,
   FloatOptional,
@@ -7,7 +7,9 @@ import {
   StringOptional,
 } from '@/components/form/formValidationTypes.ts';
 import { anteSucceDefault, CedentConDisType, CedentType } from '@/data/cedent.ts';
-import { FourFtResultDetail } from '@/api/fourft.ts';
+import { FourFtResultDetail, fourFtResultQueryOptions } from '@/api/fourft.ts';
+import { QuantifierField } from '@/containers/4ftminer/FourFtMinerCreate.tsx';
+import { allQuantifierFields } from '@/data/quantifier.ts';
 
 export const cedentZodObject = z.object({
   name: ComboboxStringMandatory(),
@@ -116,4 +118,48 @@ export const getValuesFromApi = (data: FourFtResultDetail): FourFtSchemaT => {
       anteSucceDefault,
     ],
   } satisfies FourFtSchemaT;
+};
+
+export type QuantifierField = (typeof allQuantifierFields)[number];
+
+export const fillQuantifiers = (data: FourFtResultDetail) => {
+  const quantifiers: QuantifierField[] = [];
+  if (data.base) quantifiers.push('base');
+  if (data.rel_base) quantifiers.push('relBase');
+  if (data.aad) quantifiers.push('aad');
+  if (data.confidence) quantifiers.push('confidence');
+  return quantifiers;
+};
+
+export const enrichSchemaWithQuantifiers = (quantifiers: QuantifierField[]) => {
+  return fourftSchema.superRefine(({ base, relBase, aad, confidence }, ctx) => {
+    if (quantifiers.includes('base') && !base) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Fill in or remove quantifier',
+        path: ['base'],
+      });
+    }
+    if (quantifiers.includes('relBase') && !relBase) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Fill in or remove quantifier',
+        path: ['relBase'],
+      });
+    }
+    if (quantifiers.includes('aad') && !aad) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Fill in or remove quantifier',
+        path: ['aad'],
+      });
+    }
+    if (quantifiers.includes('confidence') && !confidence) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Fill in or remove quantifier',
+        path: ['confidence'],
+      });
+    }
+  });
 };

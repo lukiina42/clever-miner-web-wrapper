@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label.tsx';
 import TextInputField from '@/components/form/TextInputField.tsx';
 import { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
-import { QuantifierField } from '@/containers/4ftminer/FourFtMiner.tsx';
+import { QuantifierField } from '@/containers/4ftminer/FourFtMinerUpdate.tsx';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,47 +34,50 @@ export default function FourFtQuantifiers({
   );
 
   return (
-    <div className="flex flex-col gap-8 p-4 items-center">
-      <div className={'flex flex-col gap-5'}>
-        {quantifierItems.map((option) => (
-          <div className={'w-64'}>
-            <div className={'flex justify-between w-full'}>
-              <Label htmlFor={option}>{capitalizeFirstLetter(option)}</Label>
-              <div
-                onClick={() => removeQuantifier(option)}
-                className="w-4 h-4 mb-0.5 flex items-center justify-center rounded-full bg-red-500 text-white cursor-pointer"
-              >
-                <span className={'mb-0.5'}>-</span>
+    <div className="flex flex-col gap-2 items-start">
+      <div className={'text-lg font-bold self-start'}>Configure quantifiers</div>
+      <div className="flex flex-col gap-6 items-center">
+        <div className={'flex flex-col gap-5'}>
+          {quantifierItems.map((option) => (
+            <div className={'w-64'}>
+              <div className={'flex justify-between w-full'}>
+                <Label htmlFor={option}>{capitalizeFirstLetter(option)}</Label>
+                <div
+                  onClick={() => removeQuantifier(option)}
+                  className="w-4 h-4 mb-0.5 flex items-center justify-center rounded-full bg-red-500 text-white cursor-pointer"
+                >
+                  <span className={'mb-0.5'}>-</span>
+                </div>
               </div>
+              <TextInputField {...register(option)} errorMessage={errors?.[option]?.message} />
             </div>
-            <TextInputField {...register(option)} errorMessage={errors?.[option]?.message} />
-          </div>
-        ))}
+          ))}
+        </div>
+        {quantifierMenuOptions.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={
+                'text-primary-foreground text-sm font-medium py-2 rounded cursor-pointer bg-black hover:bg-gray-800 w-40'
+              }
+            >
+              <b className={'pr-2'}>+</b>Add quantifier
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Available quantifiers</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {quantifierMenuOptions.map((option) => (
+                <DropdownMenuItem
+                  className={'cursor-pointer'}
+                  key={option}
+                  onClick={() => addQuantifier(option)}
+                >
+                  {option}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
-      {quantifierMenuOptions.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            className={
-              'text-primary-foreground text-sm font-medium py-2 mt-2 rounded cursor-pointer bg-black hover:bg-gray-800 w-40'
-            }
-          >
-            <b className={'pr-2'}>+</b>Add quantifier
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel>Available quantifiers</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {quantifierMenuOptions.map((option) => (
-              <DropdownMenuItem
-                className={'cursor-pointer'}
-                key={option}
-                onClick={() => addQuantifier(option)}
-              >
-                {option}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
     </div>
   );
 }

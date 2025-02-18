@@ -9,7 +9,7 @@ import {
   UseFormSetValue,
   UseFormTrigger,
 } from 'react-hook-form';
-import { DatasetState } from '@/containers/4ftminer/FourFtMiner.tsx';
+import { DatasetState } from '@/containers/4ftminer/FourFtMinerUpdate.tsx';
 import { DatasetHeaderName } from '@/containers/4ftminer/FourFtForm.tsx';
 import AddAnteSucceDialog from '@/containers/4ftminer/AddAnteSucceDialog.tsx';
 import AnteSucceList from '@/containers/4ftminer/AnteSucceList.tsx';
@@ -60,7 +60,7 @@ export default function Antecedents({
   return (
     <div className={'flex flex-col gap-2'}>
       <div className={'text-lg font-bold'}>Configure antecedents</div>
-      <div className="flex flex-col gap-6 items-center">
+      <div className="flex flex-col gap-6 items-center w-fit">
         <AnteBaseParameters register={register} errors={errors} />
         <AnteSucceList
           remove={removeAntecedent}

@@ -136,6 +136,8 @@ const fetchFourFtResult = async (fourFtResultId: string): Promise<FourFtResultDe
     throw error;
   }
 
+  console.log(data);
+
   return {
     ...data,
     id: data.id.toString(),
