@@ -4,7 +4,7 @@ import { baseApiUrl } from '@/utils/constants.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 import { z } from 'zod';
 import { Dataset, datasetSchema } from '@/api/dataset.ts';
-import { redirect, Router, UseNavigateResult } from '@tanstack/react-router';
+import { UseNavigateResult } from '@tanstack/react-router';
 
 const fourFtBaseApiUrl = `${baseApiUrl}/fourftminer`;
 

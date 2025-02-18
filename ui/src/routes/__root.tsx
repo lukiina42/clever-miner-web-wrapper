@@ -6,8 +6,7 @@ export const Route = createRootRoute({
   component: () => (
     <div className={'flex flex-col min-h-screen h-screen w-screen'}>
       <Navigation />
-      <hr />
-      <div className={'flex w-full h-[calc(100%-3rem)]'}>
+      <div className={'flex w-full h-[calc(100%-9rem)]'}>
         <Outlet />
       </div>
       <TanStackRouterDevtools />

@@ -39,7 +39,7 @@ export function ComboboxHookForm({
   const [open, setOpen] = useState(false);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -58,11 +58,11 @@ export function ComboboxHookForm({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0" forceMount={true}>
+      <PopoverContent className="w-[300px] p-0 overflow-y-auto" forceMount={true}>
         <Command className={'overflow-y-auto'}>
           <CommandInput placeholder="Search option..." />
           <CommandEmpty>{`No ${optionName} found.`}</CommandEmpty>
-          <CommandList className={'overflow-y-auto max-h-[400px]'}>
+          <CommandList className={'overflow-y-auto max-h-[20rem]'}>
             <CommandGroup className={'overflow-y-auto'}>
               {options?.map((option) => {
                 return (

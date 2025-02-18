@@ -11,16 +11,17 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root';
-import { Route as DatasetsImport } from './routes/datasets';
+import { Route as FourftImport } from './routes/_fourft';
 import { Route as IndexImport } from './routes/index';
-import { Route as FourftFourftIdImport } from './routes/fourft.$fourftId';
-import { Route as FourftCreateIndexImport } from './routes/fourft.create.index';
+import { Route as FourftFourftImport } from './routes/_fourft.fourft';
+import { Route as DatasetDatasetsImport } from './routes/_dataset.datasets';
+import { Route as FourftFourftFourftIdImport } from './routes/_fourft.fourft.$fourftId';
+import { Route as FourftFourftCreateIndexImport } from './routes/_fourft.fourft.create.index';
 
 // Create/Update Routes
 
-const DatasetsRoute = DatasetsImport.update({
-  id: '/datasets',
-  path: '/datasets',
+const FourftRoute = FourftImport.update({
+  id: '/_fourft',
   getParentRoute: () => rootRoute,
 } as any);
 
@@ -30,16 +31,28 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any);
 
-const FourftFourftIdRoute = FourftFourftIdImport.update({
-  id: '/fourft/$fourftId',
-  path: '/fourft/$fourftId',
+const FourftFourftRoute = FourftFourftImport.update({
+  id: '/fourft',
+  path: '/fourft',
+  getParentRoute: () => FourftRoute,
+} as any);
+
+const DatasetDatasetsRoute = DatasetDatasetsImport.update({
+  id: '/_dataset/datasets',
+  path: '/datasets',
   getParentRoute: () => rootRoute,
 } as any);
 
-const FourftCreateIndexRoute = FourftCreateIndexImport.update({
-  id: '/fourft/create/',
-  path: '/fourft/create/',
-  getParentRoute: () => rootRoute,
+const FourftFourftFourftIdRoute = FourftFourftFourftIdImport.update({
+  id: '/$fourftId',
+  path: '/$fourftId',
+  getParentRoute: () => FourftFourftRoute,
+} as any);
+
+const FourftFourftCreateIndexRoute = FourftFourftCreateIndexImport.update({
+  id: '/create/',
+  path: '/create/',
+  getParentRoute: () => FourftFourftRoute,
 } as any);
 
 // Populate the FileRoutesByPath interface
@@ -53,75 +66,122 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport;
       parentRoute: typeof rootRoute;
     };
-    '/datasets': {
-      id: '/datasets';
+    '/_fourft': {
+      id: '/_fourft';
+      path: '';
+      fullPath: '';
+      preLoaderRoute: typeof FourftImport;
+      parentRoute: typeof rootRoute;
+    };
+    '/_dataset/datasets': {
+      id: '/_dataset/datasets';
       path: '/datasets';
       fullPath: '/datasets';
-      preLoaderRoute: typeof DatasetsImport;
+      preLoaderRoute: typeof DatasetDatasetsImport;
       parentRoute: typeof rootRoute;
     };
-    '/fourft/$fourftId': {
-      id: '/fourft/$fourftId';
-      path: '/fourft/$fourftId';
+    '/_fourft/fourft': {
+      id: '/_fourft/fourft';
+      path: '/fourft';
+      fullPath: '/fourft';
+      preLoaderRoute: typeof FourftFourftImport;
+      parentRoute: typeof FourftImport;
+    };
+    '/_fourft/fourft/$fourftId': {
+      id: '/_fourft/fourft/$fourftId';
+      path: '/$fourftId';
       fullPath: '/fourft/$fourftId';
-      preLoaderRoute: typeof FourftFourftIdImport;
-      parentRoute: typeof rootRoute;
+      preLoaderRoute: typeof FourftFourftFourftIdImport;
+      parentRoute: typeof FourftFourftImport;
     };
-    '/fourft/create/': {
-      id: '/fourft/create/';
-      path: '/fourft/create';
+    '/_fourft/fourft/create/': {
+      id: '/_fourft/fourft/create/';
+      path: '/create';
       fullPath: '/fourft/create';
-      preLoaderRoute: typeof FourftCreateIndexImport;
-      parentRoute: typeof rootRoute;
+      preLoaderRoute: typeof FourftFourftCreateIndexImport;
+      parentRoute: typeof FourftFourftImport;
     };
   }
 }
 
 // Create and export the route tree
 
+interface FourftFourftRouteChildren {
+  FourftFourftFourftIdRoute: typeof FourftFourftFourftIdRoute;
+  FourftFourftCreateIndexRoute: typeof FourftFourftCreateIndexRoute;
+}
+
+const FourftFourftRouteChildren: FourftFourftRouteChildren = {
+  FourftFourftFourftIdRoute: FourftFourftFourftIdRoute,
+  FourftFourftCreateIndexRoute: FourftFourftCreateIndexRoute,
+};
+
+const FourftFourftRouteWithChildren = FourftFourftRoute._addFileChildren(FourftFourftRouteChildren);
+
+interface FourftRouteChildren {
+  FourftFourftRoute: typeof FourftFourftRouteWithChildren;
+}
+
+const FourftRouteChildren: FourftRouteChildren = {
+  FourftFourftRoute: FourftFourftRouteWithChildren,
+};
+
+const FourftRouteWithChildren = FourftRoute._addFileChildren(FourftRouteChildren);
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
-  '/datasets': typeof DatasetsRoute;
-  '/fourft/$fourftId': typeof FourftFourftIdRoute;
-  '/fourft/create': typeof FourftCreateIndexRoute;
+  '': typeof FourftRouteWithChildren;
+  '/datasets': typeof DatasetDatasetsRoute;
+  '/fourft': typeof FourftFourftRouteWithChildren;
+  '/fourft/$fourftId': typeof FourftFourftFourftIdRoute;
+  '/fourft/create': typeof FourftFourftCreateIndexRoute;
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
-  '/datasets': typeof DatasetsRoute;
-  '/fourft/$fourftId': typeof FourftFourftIdRoute;
-  '/fourft/create': typeof FourftCreateIndexRoute;
+  '': typeof FourftRouteWithChildren;
+  '/datasets': typeof DatasetDatasetsRoute;
+  '/fourft': typeof FourftFourftRouteWithChildren;
+  '/fourft/$fourftId': typeof FourftFourftFourftIdRoute;
+  '/fourft/create': typeof FourftFourftCreateIndexRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   '/': typeof IndexRoute;
-  '/datasets': typeof DatasetsRoute;
-  '/fourft/$fourftId': typeof FourftFourftIdRoute;
-  '/fourft/create/': typeof FourftCreateIndexRoute;
+  '/_fourft': typeof FourftRouteWithChildren;
+  '/_dataset/datasets': typeof DatasetDatasetsRoute;
+  '/_fourft/fourft': typeof FourftFourftRouteWithChildren;
+  '/_fourft/fourft/$fourftId': typeof FourftFourftFourftIdRoute;
+  '/_fourft/fourft/create/': typeof FourftFourftCreateIndexRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: '/' | '/datasets' | '/fourft/$fourftId' | '/fourft/create';
+  fullPaths: '/' | '' | '/datasets' | '/fourft' | '/fourft/$fourftId' | '/fourft/create';
   fileRoutesByTo: FileRoutesByTo;
-  to: '/' | '/datasets' | '/fourft/$fourftId' | '/fourft/create';
-  id: '__root__' | '/' | '/datasets' | '/fourft/$fourftId' | '/fourft/create/';
+  to: '/' | '' | '/datasets' | '/fourft' | '/fourft/$fourftId' | '/fourft/create';
+  id:
+    | '__root__'
+    | '/'
+    | '/_fourft'
+    | '/_dataset/datasets'
+    | '/_fourft/fourft'
+    | '/_fourft/fourft/$fourftId'
+    | '/_fourft/fourft/create/';
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
-  DatasetsRoute: typeof DatasetsRoute;
-  FourftFourftIdRoute: typeof FourftFourftIdRoute;
-  FourftCreateIndexRoute: typeof FourftCreateIndexRoute;
+  FourftRoute: typeof FourftRouteWithChildren;
+  DatasetDatasetsRoute: typeof DatasetDatasetsRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DatasetsRoute: DatasetsRoute,
-  FourftFourftIdRoute: FourftFourftIdRoute,
-  FourftCreateIndexRoute: FourftCreateIndexRoute,
+  FourftRoute: FourftRouteWithChildren,
+  DatasetDatasetsRoute: DatasetDatasetsRoute,
 };
 
 export const routeTree = rootRoute
@@ -135,22 +195,37 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/datasets",
-        "/fourft/$fourftId",
-        "/fourft/create/"
+        "/_fourft",
+        "/_dataset/datasets"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/datasets": {
-      "filePath": "datasets.tsx"
+    "/_fourft": {
+      "filePath": "_fourft.tsx",
+      "children": [
+        "/_fourft/fourft"
+      ]
     },
-    "/fourft/$fourftId": {
-      "filePath": "fourft.$fourftId.tsx"
+    "/_dataset/datasets": {
+      "filePath": "_dataset.datasets.tsx"
     },
-    "/fourft/create/": {
-      "filePath": "fourft.create.index.tsx"
+    "/_fourft/fourft": {
+      "filePath": "_fourft.fourft.tsx",
+      "parent": "/_fourft",
+      "children": [
+        "/_fourft/fourft/$fourftId",
+        "/_fourft/fourft/create/"
+      ]
+    },
+    "/_fourft/fourft/$fourftId": {
+      "filePath": "_fourft.fourft.$fourftId.tsx",
+      "parent": "/_fourft/fourft"
+    },
+    "/_fourft/fourft/create/": {
+      "filePath": "_fourft.fourft.create.index.tsx",
+      "parent": "/_fourft/fourft"
     }
   }
 }

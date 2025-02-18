@@ -1,7 +1,6 @@
 import '../../App.css';
 import useZodForm from '@/components/form/useZodForm.ts';
 import { useState } from 'react';
-import PageHeading from '@/components/ui/PageHeading.tsx';
 import FourFtForm from '@/containers/4ftminer/FourFtForm.tsx';
 import { Dataset, useGetDatasets } from '@/api/dataset.ts';
 import { FourFtResultDetail, useFullUpdateFourFt } from '@/api/fourft.ts';
@@ -23,7 +22,6 @@ import {
   getValuesFromApi,
   QuantifierField,
 } from '@/schema/fourFtForm.ts';
-import { useNavigate } from '@tanstack/react-router';
 import { ClipLoader } from 'react-spinners';
 
 export type DatasetState = {
@@ -37,8 +35,6 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
     value: data?.dataset ?? undefined,
     errorMessage: undefined,
   };
-
-  const navigate = useNavigate();
 
   const initialQuantifiers = fillQuantifiers(data);
 
@@ -110,7 +106,6 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
 
   return (
     <div className={'flex flex-col w-full h-full items-center'}>
-      <PageHeading title={'4FT Miner'} />
       <div className={'flex w-full xl:w-4/5 2xl:w-3/5 pb-4'}>
         <Collapsible
           open={formIsOpen}

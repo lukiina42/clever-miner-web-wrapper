@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import FourFtMinerCreate from '@/containers/4ftminer/FourFtMinerCreate.tsx';
 
-export const Route = createFileRoute('/fourft/create/')({
+export const Route = createFileRoute('/_fourft/fourft/create/')({
   component: FourFt,
 });
 

@@ -1,4 +1,4 @@
-import { z, ZodObject } from 'zod';
+import { z } from 'zod';
 import {
   ComboboxStringMandatory,
   FloatOptional,
@@ -7,8 +7,7 @@ import {
   StringOptional,
 } from '@/components/form/formValidationTypes.ts';
 import { anteSucceDefault, CedentConDisType, CedentType } from '@/data/cedent.ts';
-import { FourFtResultDetail, fourFtResultQueryOptions } from '@/api/fourft.ts';
-import { QuantifierField } from '@/containers/4ftminer/FourFtMinerCreate.tsx';
+import { FourFtResultDetail } from '@/api/fourft.ts';
 import { allQuantifierFields } from '@/data/quantifier.ts';
 
 export const cedentZodObject = z.object({

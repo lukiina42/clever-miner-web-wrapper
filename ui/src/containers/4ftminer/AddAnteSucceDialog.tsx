@@ -48,7 +48,7 @@ export default function AddAnteSucceDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] overflow-y-auto max-h-screen">
         <DialogHeader>
           <DialogTitle>Add {title}</DialogTitle>
           <DialogDescription>
