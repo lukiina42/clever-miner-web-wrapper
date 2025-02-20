@@ -75,7 +75,7 @@ const numberToDecimalPlaces = (num: number, decimalPlaces: number) => {
   return (Math.round(num * 100) / 100).toFixed(decimalPlaces);
 };
 
-export default function FourFtResults({ rules, isLoading }: Props) {
+export default function FourFtRules({ rules, isLoading }: Props) {
   const [openRows, setOpenRows] = useState<number[]>([]);
 
   const toggleRow = (rule: number) => {

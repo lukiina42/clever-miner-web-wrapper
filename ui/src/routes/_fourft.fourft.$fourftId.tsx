@@ -1,9 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { fourFtResultQueryOptions } from '@/api/fourft.ts';
-import FourFtMinerUpdate from '@/containers/4ftminer/FourFtMinerUpdate.tsx';
-import { Suspense } from 'react';
-import { ClipLoader } from 'react-spinners';
+import FourFtMinerUpdate from '@/containers/4ftminer/fourFtForm/FourFtMinerUpdate.tsx';
+import SuspenseWrapper from "@/components/suspense/SuspenseWrapper.tsx";
 
 export const Route = createFileRoute('/_fourft/fourft/$fourftId')({
   component: FourFtDetailSuspense,
@@ -11,9 +10,7 @@ export const Route = createFileRoute('/_fourft/fourft/$fourftId')({
 
 function FourFtDetailSuspense() {
   return (
-    <Suspense fallback={<FourFtDetailCallback />}>
-      <FourFtDetail />;
-    </Suspense>
+    <SuspenseWrapper><FourFtDetail /></SuspenseWrapper>
   );
 }
 
@@ -23,12 +20,4 @@ function FourFtDetail() {
   const fourFtResult = useSuspenseQuery(fourFtResultQueryOptions(fourftId));
 
   return <FourFtMinerUpdate data={fourFtResult.data} />;
-}
-
-function FourFtDetailCallback() {
-  return (
-    <div className={'h-[calc(100vh-10rem)] w-screen flex items-center justify-center'}>
-      <ClipLoader size={48} />
-    </div>
-  );
 }

@@ -27,7 +27,4 @@ def clm_init(s3_key: str):
 
     remove_file('../../temp_clm_file.pkl')
 
-    print(len(clm.rulelist))
-    clm.print_rulelist()
-    
     return clm

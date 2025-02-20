@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 # Create your models here.
@@ -39,7 +40,7 @@ class Cedent(models.Model):
     )
 
 class FourFtResult(models.Model):
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, null=False, blank=False)
     dataset = models.ForeignKey(
         Dataset,
         on_delete=models.SET_NULL,
@@ -58,3 +59,5 @@ class FourFtResult(models.Model):
     succe_max_len = models.IntegerField(null=False, validators=[MinValueValidator(1), MaxValueValidator(128)])
     con_dis_antecedent_type = models.CharField(max_length=256)
     con_dis_succedent_type = models.CharField(max_length=256)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

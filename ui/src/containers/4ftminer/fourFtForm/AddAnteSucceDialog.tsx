@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog.tsx';
 import { useState } from 'react';
 import { anteSucceDefault } from '@/data/cedent.ts';
-import AnteSucceInput from '@/containers/4ftminer/AnteSucceInput.tsx';
+import AnteSucceInput from '@/containers/4ftminer/fourFtForm/AnteSucceInput.tsx';
 import { AnteSucceInputProps } from '@/type/anteSucceInput.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 

@@ -15,7 +15,6 @@ class FourFtMinerView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = FourFtMinerSerializer(data=request.data)
         if serializer.is_valid():
-            
             validated_data = serializer.validated_data
             dataset_id = validated_data['dataset_id']
             base = validated_data['base']
@@ -101,10 +100,9 @@ class FourFtMinerView(APIView):
         List all the four ft results
         '''
         four_ft_results = FourFtResult.objects.all()
-        serializer = FourFtMinerSerializer(four_ft_results, many=True)
+        serializer = FourFtMinerSerializer(four_ft_results, many=True, context={"request": request})
         data = serializer.data
         return Response(data, status=status.HTTP_200_OK)
-
 
 
 class FourFtResultDetailView(APIView):

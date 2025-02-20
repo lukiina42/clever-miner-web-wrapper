@@ -1,4 +1,4 @@
-import AnteBaseParameters from '@/containers/4ftminer/AnteBaseParameters.tsx';
+import AnteBaseParameters from '@/containers/4ftminer/fourFtForm/AnteBaseParameters.tsx';
 import {
   Control,
   FieldErrors,
@@ -9,10 +9,10 @@ import {
   UseFormSetValue,
   UseFormTrigger,
 } from 'react-hook-form';
-import { DatasetState } from '@/containers/4ftminer/FourFtMinerUpdate.tsx';
-import { DatasetHeaderName } from '@/containers/4ftminer/FourFtForm.tsx';
-import AddAnteSucceDialog from '@/containers/4ftminer/AddAnteSucceDialog.tsx';
-import AnteSucceList from '@/containers/4ftminer/AnteSucceList.tsx';
+import { DatasetState } from '@/containers/4ftminer/fourFtForm/FourFtMinerUpdate.tsx';
+import { DatasetHeaderName } from '@/containers/4ftminer/fourFtForm/FourFtForm.tsx';
+import AddAnteSucceDialog from '@/containers/4ftminer/fourFtForm/AddAnteSucceDialog.tsx';
+import AnteSucceList from '@/containers/4ftminer/fourFtForm/AnteSucceList.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { displayNotification } from '@/utils/displayNotification.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';

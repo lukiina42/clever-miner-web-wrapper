@@ -1,5 +1,5 @@
 import { queryOptions, useMutation } from '@tanstack/react-query';
-import { Rule } from '@/containers/4ftminer/FourFtResults.tsx';
+import { Rule } from '@/containers/4ftminer/fourFtForm/FourFtRules.tsx';
 import { baseApiUrl } from '@/utils/constants.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 import { z } from 'zod';
@@ -41,7 +41,6 @@ export const useCreateFourFt = (navigate: UseNavigateResult<string>) =>
       return (await response.json()) as { id: number };
     },
     onSuccess: async (data) => {
-      console.log('throwing redirect');
       await navigate({ to: `/fourft/${data.id}` });
     },
     onError: (error) => {
@@ -97,6 +96,7 @@ export type Cedent = Omit<CedentApi, 'id'> & { id: string };
 const fourFtResultSchema = z.object({
   id: z.number(),
   dataset_id: z.number(),
+  name: z.string(),
   s3_key: z.string().nullable(),
   base: z.number().nullable(),
   confidence: z.number().nullable(),
@@ -110,6 +110,8 @@ const fourFtResultSchema = z.object({
   con_dis_succedent_type: z.string(),
   antecedent: z.array(cedentSchema),
   succedent: z.array(cedentSchema),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
 const fourFtResultDetailSchema = fourFtResultSchema.extend({
@@ -135,8 +137,6 @@ const fetchFourFtResult = async (fourFtResultId: string): Promise<FourFtResultDe
     console.error('Invalid response', error);
     throw error;
   }
-
-  console.log(data);
 
   return {
     ...data,

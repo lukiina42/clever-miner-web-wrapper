@@ -3,7 +3,7 @@ import {
   ComboboxStringMandatory,
   FloatOptional,
   IntMandatory,
-  IntOptional,
+  IntOptional, StringMandatory,
   StringOptional,
 } from '@/components/form/formValidationTypes.ts';
 import { anteSucceDefault, CedentConDisType, CedentType } from '@/data/cedent.ts';
@@ -23,6 +23,7 @@ export const cedentZodObject = z.object({
 
 export const fourftSchema = z
   .object({
+    name: StringMandatory(256),
     base: IntOptional(1, 1000000),
     relBase: FloatOptional(0.001, 1),
     confidence: FloatOptional(0.001, 1),
@@ -60,8 +61,42 @@ export const fourftSchema = z
     }
   });
 
+export const enrichSchemaWithQuantifiers = (quantifiers: QuantifierField[]) => {
+  return fourftSchema.superRefine(({ base, relBase, aad, confidence }, ctx) => {
+    if (quantifiers.includes('base') && !base) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Fill in or remove quantifier',
+        path: ['base'],
+      });
+    }
+    if (quantifiers.includes('relBase') && !relBase) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Fill in or remove quantifier',
+        path: ['relBase'],
+      });
+    }
+    if (quantifiers.includes('aad') && !aad) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Fill in or remove quantifier',
+        path: ['aad'],
+      });
+    }
+    if (quantifiers.includes('confidence') && !confidence) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Fill in or remove quantifier',
+        path: ['confidence'],
+      });
+    }
+  });
+};
+
 export const fourftDefaultValues = {
   base: '',
+  name: '',
   relBase: '',
   confidence: '',
   aad: '',
@@ -80,6 +115,7 @@ export type FourFtSchemaT = z.infer<typeof fourftSchema>;
 export const getValuesFromApi = (data: FourFtResultDetail): FourFtSchemaT => {
   return {
     base: data.base !== null ? data.base.toString() : '',
+    name: data.name,
     relBase: data.rel_base !== null ? data.rel_base.toString() : '',
     confidence: data.confidence !== null ? data.confidence.toString() : '',
     aad: data.aad !== null ? data.aad.toString() : '',
@@ -128,37 +164,4 @@ export const fillQuantifiers = (data: FourFtResultDetail) => {
   if (data.aad) quantifiers.push('aad');
   if (data.confidence) quantifiers.push('confidence');
   return quantifiers;
-};
-
-export const enrichSchemaWithQuantifiers = (quantifiers: QuantifierField[]) => {
-  return fourftSchema.superRefine(({ base, relBase, aad, confidence }, ctx) => {
-    if (quantifiers.includes('base') && !base) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Fill in or remove quantifier',
-        path: ['base'],
-      });
-    }
-    if (quantifiers.includes('relBase') && !relBase) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Fill in or remove quantifier',
-        path: ['relBase'],
-      });
-    }
-    if (quantifiers.includes('aad') && !aad) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Fill in or remove quantifier',
-        path: ['aad'],
-      });
-    }
-    if (quantifiers.includes('confidence') && !confidence) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Fill in or remove quantifier',
-        path: ['confidence'],
-      });
-    }
-  });
 };

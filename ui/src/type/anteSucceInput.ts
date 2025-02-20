@@ -8,8 +8,8 @@ import {
   UseFormSetValue,
   UseFormTrigger,
 } from 'react-hook-form';
-import { DatasetState } from '@/containers/4ftminer/FourFtMinerUpdate.tsx';
-import { DatasetHeaderName } from '@/containers/4ftminer/FourFtForm.tsx';
+import { DatasetState } from '@/containers/4ftminer/fourFtForm/FourFtMinerUpdate.tsx';
+import { DatasetHeaderName } from '@/containers/4ftminer/fourFtForm/FourFtForm.tsx';
 import { ReactNode } from 'react';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 

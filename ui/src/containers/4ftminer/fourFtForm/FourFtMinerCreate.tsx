@@ -1,9 +1,9 @@
-import '../../App.css';
+import '../../../App.css';
 import useZodForm from '@/components/form/useZodForm.ts';
 import { useState } from 'react';
-import FourFtForm from '@/containers/4ftminer/FourFtForm.tsx';
+import FourFtForm from '@/containers/4ftminer/fourFtForm/FourFtForm.tsx';
 import { Dataset, useGetDatasets } from '@/api/dataset.ts';
-import { FourFtResultDetail, useFullUpdateFourFt } from '@/api/fourft.ts';
+import { useCreateFourFt } from '@/api/fourft.ts';
 import { Form } from '@/components/ui/form.tsx';
 import { anteSucceDefault } from '@/data/cedent.ts';
 import {
@@ -16,12 +16,11 @@ import { allQuantifierFields } from '@/data/quantifier.ts';
 import clsxm from '@/utils/clsxm.ts';
 import {
   enrichSchemaWithQuantifiers,
-  fillQuantifiers,
   fourftDefaultValues,
   FourFtSchemaT,
-  getValuesFromApi,
   QuantifierField,
 } from '@/schema/fourFtForm.ts';
+import { useNavigate } from '@tanstack/react-router';
 import { ClipLoader } from 'react-spinners';
 
 export type DatasetState = {
@@ -29,31 +28,28 @@ export type DatasetState = {
   errorMessage: string | undefined;
 };
 
-export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
-  const data = props.data;
-  const initialDatasetState: DatasetState = {
-    value: data?.dataset ?? undefined,
-    errorMessage: undefined,
-  };
+const initialDatasetState: DatasetState = {
+  value: undefined,
+  errorMessage: undefined,
+};
 
-  const initialQuantifiers = fillQuantifiers(data);
+export default function FourFtMinerCreate() {
+  const navigate = useNavigate();
 
   const [currentDatasetState, setCurrentDatasetState] = useState<DatasetState>(initialDatasetState);
 
   const [formIsOpen, setFormIsOpen] = useState(true);
 
-  const [currentQuantifiers, setCurrentQuantifiers] =
-    useState<QuantifierField[]>(initialQuantifiers);
+  const [currentQuantifiers, setCurrentQuantifiers] = useState<QuantifierField[]>([]);
   const quantifierOptions = allQuantifierFields.filter(
     (field) => !currentQuantifiers.includes(field)
   );
 
   const schema = enrichSchemaWithQuantifiers(currentQuantifiers);
-  const defaultValues = data !== undefined ? getValuesFromApi(data) : fourftDefaultValues;
 
   const form = useZodForm({
     schema: schema,
-    defaultValues: defaultValues,
+    defaultValues: fourftDefaultValues,
     mode: 'onSubmit',
   });
 
@@ -97,7 +93,7 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
     addAnteSucceToEnd();
   };
 
-  const processFourFtRequestMutation = useFullUpdateFourFt(data.id);
+  const processFourFtRequestMutation = useCreateFourFt(navigate);
 
   const datasetsQueryResponse = useGetDatasets();
 
@@ -106,7 +102,7 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
 
   return (
     <div className={'flex flex-col w-full h-full items-center'}>
-      <div className={'flex w-full xl:w-4/5 2xl:w-3/5 pb-4'}>
+      <div className={'flex flex-col w-full xl:w-4/5 2xl:w-3/5 pb-4'}>
         <Collapsible
           open={formIsOpen}
           onOpenChange={setFormIsOpen}
@@ -154,7 +150,7 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
         </Collapsible>
         {processFourFtRequestMutation.isPending && (
           <div className={'w-full h-full flex justify-center items-center'}>
-            <ClipLoader size={64} />
+            <ClipLoader size={48} />
           </div>
         )}
       </div>

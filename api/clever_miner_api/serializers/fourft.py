@@ -52,6 +52,7 @@ class CedentSerializer(CamelCaseToSnakeCaseModelSerializer):
 class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     id=serializers.IntegerField(read_only=True)
     dataset_id = serializers.IntegerField()
+    name = serializers.CharField(max_length=256, required=True, allow_null=False)
     s3_key = serializers.CharField(max_length=256, required=False, allow_null=True)
     base = serializers.IntegerField(min_value=1, max_value=1000000, required=False, allow_null=True)
     confidence = serializers.FloatField(max_value=1, required=False, allow_null=True)
@@ -63,6 +64,8 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     succe_max_len = serializers.IntegerField(min_value=1, max_value=128)
     con_dis_antecedent_type = serializers.CharField(max_length=256)
     con_dis_succedent_type = serializers.CharField(max_length=256)
+    created_at = serializers.CharField(read_only=True)
+    updated_at = serializers.CharField(read_only=True)
 
     # Used for POST (create) requests
     antecedent = CedentSerializer(many=True, write_only=True)
@@ -214,6 +217,7 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             clm = clm_init(s3_key)
             clm.print_rulelist()
             
+        if is_detail_request:
             dataset = Dataset.objects.get(id=instance.dataset_id)
             representation['dataset'] = DatasetSerializer(dataset).data
             

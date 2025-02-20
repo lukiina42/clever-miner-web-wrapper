@@ -2,7 +2,7 @@ import React, { SetStateAction } from 'react';
 import { ComboboxWrapper } from '@/components/form/ComboboxWrapper.tsx';
 import { FieldValues, UseFormSetValue } from 'react-hook-form';
 import { Dataset } from '@/api/dataset.ts';
-import { DatasetState } from '@/containers/4ftminer/FourFtMinerUpdate.tsx';
+import { DatasetState } from '@/containers/4ftminer/fourFtForm/FourFtMinerUpdate.tsx';
 import { Value } from '@/components/form/ComboboxHookFormWrapper.tsx';
 import { anteSucceDefault } from '@/data/cedent.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
