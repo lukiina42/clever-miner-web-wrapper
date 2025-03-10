@@ -23,6 +23,7 @@ import {
   QuantifierField,
 } from '@/schema/fourFtForm.ts';
 import { ClipLoader } from 'react-spinners';
+import FourFtRules from '@/containers/4ftminer/fourFtForm/rules/FourFtRules.tsx';
 
 export type DatasetState = {
   value: Dataset | undefined;
@@ -152,10 +153,12 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
             <span className="sr-only">{formIsOpen ? 'Close form' : 'Open form'}</span>
           </CollapsibleTrigger>
         </Collapsible>
-        {processFourFtRequestMutation.isPending && (
+        {processFourFtRequestMutation.isPending ? (
           <div className={'w-full h-full flex justify-center items-center'}>
             <ClipLoader size={48} />
           </div>
+        ) : (
+          <FourFtRules rules={data.rules} fourFtResultId={data.id} />
         )}
       </div>
     </div>

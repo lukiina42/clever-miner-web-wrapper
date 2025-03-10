@@ -4,7 +4,7 @@ from .dataset import DatasetSerializer
 from ..models import Dataset, FourFtResult, Cedent
 
 from ..utils.clm_init import clm_init
-from ..utils.s3 import clm_s3_upload, create_presigned_url, download_s3_file
+from ..utils.s3 import clm_s3_upload, create_presigned_url, download_s3_file, dataset_s3_delete
 
 import re
 
@@ -133,6 +133,10 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
 
         clm = validated_data.pop('clm', None)
 
+        current_s3_key = instance.s3_key
+        if current_s3_key is not None:
+            dataset_s3_delete(current_s3_key)
+
         # Extract related data from the validated data
         antecedents = validated_data.pop('antecedent', [])
         succedents = validated_data.pop('succedent', [])
@@ -181,7 +185,7 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         if len(clm.rulelist) > 0:
             s3_key = clm_s3_upload(clm, instance.s3_key)
 
-        validated_data.update({'s3_key': s3_key})
+        instance.s3_key = s3_key
 
         # Save updated instance
         instance.save()
@@ -215,10 +219,15 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         
         if is_detail_request and s3_key is not None:
             clm = clm_init(s3_key)
-            clm.print_rulelist()
+            rules = clm.result['rules']
+            for rule in rules:
+                rule['rule_text'] = clm.get_ruletext(rule['rule_id']) 
+            representation['rules'] = rules
             
         if is_detail_request:
             dataset = Dataset.objects.get(id=instance.dataset_id)
             representation['dataset'] = DatasetSerializer(dataset).data
             
         return representation
+    
+    

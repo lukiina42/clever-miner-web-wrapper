@@ -3,7 +3,8 @@ import {
   ComboboxStringMandatory,
   FloatOptional,
   IntMandatory,
-  IntOptional, StringMandatory,
+  IntOptional,
+  StringMandatory,
   StringOptional,
 } from '@/components/form/formValidationTypes.ts';
 import { anteSucceDefault, CedentConDisType, CedentType } from '@/data/cedent.ts';

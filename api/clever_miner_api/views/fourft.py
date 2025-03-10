@@ -4,12 +4,19 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound
+import io
+import base64
 
 from ..models import Dataset, FourFtResult
 from ..serializers.dataset import DatasetSerializer
 from ..serializers.fourft import FourFtMinerSerializer
 
 import pandas as pd
+
+from ..serializers.rule import RuleDataSerializer
+from ..utils.clm_init import clm_init
+import matplotlib.pyplot as plt
+
 
 class FourFtMinerView(APIView):
     def post(self, request, *args, **kwargs):
@@ -61,7 +68,7 @@ class FourFtMinerView(APIView):
             file = pd.read_csv(signed_url, encoding='cp1250', sep=dataset.delimiter)
 
             quantifiers = {
-                'confidence': confidence,
+                'conf': confidence,
                 'aad': aad,
                 'Base': base,
                 'relbase': rel_base
@@ -168,7 +175,7 @@ class FourFtResultDetailView(APIView):
             file = pd.read_csv(signed_url, encoding='cp1250', sep=dataset.delimiter)
 
             quantifiers = {
-                'confidence': confidence,
+                'conf': confidence,
                 'aad': aad,
                 'Base': base,
                 'relbase': rel_base
@@ -200,14 +207,14 @@ class FourFtResultDetailView(APIView):
             # Save updated data to db
             serializer.save(clm=clm)
 
-            return Response(rulelist, status=status.HTTP_200_OK)
+            return Response(None, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FourFtResultRuleDetailView(RetrieveAPIView):
-    serializer_class = FourFtMinerSerializer  # Use appropriate serializer
-
+    serializer_class = RuleDataSerializer
+    
     def get_queryset(self):
         return FourFtResult.objects.all()  # Define base queryset
 
@@ -219,7 +226,7 @@ class FourFtResultRuleDetailView(RetrieveAPIView):
 
         # Extracting values from the URL
         four_ft_id = self.kwargs.get("four_ft_id")
-        rule_id = self.kwargs.get("rule_id")
+        rule_id = int(self.kwargs.get("rule_id"))
 
         # Filtering by both IDs
         obj = queryset.filter(id=four_ft_id).first()
@@ -227,4 +234,30 @@ class FourFtResultRuleDetailView(RetrieveAPIView):
         if not obj:
             raise NotFound(f'FourFtResult with id ${four_ft_id} was not found.')
 
-        return obj
+        clm = clm_init(obj.s3_key)
+        rules = clm.result['rules']
+        if rule_id < 1 or rule_id > len(rules):
+            raise NotFound(f'Rule with id {rule_id} was not found.')
+        
+        # find a rule with given rule_id
+        rule = next((rule for rule in rules if rule['rule_id'] == rule_id), None)
+        if not rule:
+            raise NotFound(f'Rule with id {rule_id} was not found.')
+        
+        rule['rule_text'] = clm.get_ruletext(rule_id)
+        
+        # Draw the rule but don't show it
+        clm.draw_rule(rule_id, False)
+        
+        # Save the plot to a bytes buffer
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        image_base64 = base64.b64encode(buf.getvalue()).decode()
+        plt.close()  # Clean up the plot
+
+        # Return both the rule data and the plot image
+        return {
+            'rule': rule,
+            'plot': f"data:image/png;base64,{image_base64}"
+        }

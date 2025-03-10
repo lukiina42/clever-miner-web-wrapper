@@ -63,7 +63,7 @@ class DatasetSerializer(serializers.ModelSerializer):
         # Cache the result of get_url
         presigned_url = create_presigned_url(settings.AWS_STORAGE_BUCKET_NAME, obj.s3_key)
 
-        file = pd.read_csv(presigned_url, encoding='cp1250', sep=obj.delimiter)
+        file = pd.read_csv(presigned_url, encoding='cp1250', sep=obj.delimiter, engine='python')
         representation['url'] = presigned_url
         columns = list(file.columns)
         # map columns and trim spaces around the header names

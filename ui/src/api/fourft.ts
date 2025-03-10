@@ -1,12 +1,12 @@
 import { queryOptions, useMutation } from '@tanstack/react-query';
-import { Rule } from '@/containers/4ftminer/fourFtForm/FourFtRules.tsx';
+import { Rule } from '@/containers/4ftminer/fourFtForm/rules/FourFtRules.tsx';
 import { baseApiUrl } from '@/utils/constants.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 import { z } from 'zod';
 import { Dataset, datasetSchema } from '@/api/dataset.ts';
 import { UseNavigateResult } from '@tanstack/react-router';
 
-const fourFtBaseApiUrl = `${baseApiUrl}/fourftminer`;
+export const fourFtBaseApiUrl = `${baseApiUrl}/fourftminer`;
 
 const fourFtDetailApiUrl = (id: string) => `${fourFtBaseApiUrl}/${id}`;
 const fourFtPutApiUrl = (id: string) => `${fourFtBaseApiUrl}/${id}/`;
@@ -114,8 +114,33 @@ const fourFtResultSchema = z.object({
   updated_at: z.string(),
 });
 
+const CedentsStrSchema = z.object({
+  cond: z.string(),
+  ante: z.string(),
+  succ: z.string(),
+});
+
+const ParamsSchema = z.object({
+  base: z.number(),
+  rel_base: z.number(),
+  conf: z.number(),
+  aad: z.number(),
+  bad: z.number(),
+  fourfold: z.array(z.number()),
+});
+
+export const ruleSchema = z.object({
+  rule_id: z.number(),
+  cedents_str: CedentsStrSchema,
+  params: ParamsSchema,
+  rule_text: z.string(),
+});
+
+export type Rule = z.infer<typeof ruleSchema>;
+
 const fourFtResultDetailSchema = fourFtResultSchema.extend({
   dataset: datasetSchema,
+  rules: z.array(ruleSchema),
 });
 
 const fourFtArraySchema = z.array(fourFtResultSchema);

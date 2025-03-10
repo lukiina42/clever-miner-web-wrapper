@@ -24,7 +24,6 @@ def clm_init(s3_key: str):
 
     download_s3_file(s3_key, "temp_clm_file.pkl")
     clm.load("temp_clm_file.pkl")
-
     remove_file('../../temp_clm_file.pkl')
 
     return clm

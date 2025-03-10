@@ -17,10 +17,10 @@ import FourFtQuantifiers from '@/containers/4ftminer/fourFtForm/FourFtQuantifier
 import FourFtDatasetField from '@/containers/4ftminer/fourFtForm/FourFtDatasetField.tsx';
 import Antecedents from '@/containers/4ftminer/fourFtForm/Antecedents.tsx';
 import Succedents from '@/containers/4ftminer/fourFtForm/Succedents.tsx';
-import {FourFtSchemaT, QuantifierField} from '@/schema/fourFtForm.ts';
-import {Label} from "@/components/ui/label.tsx";
-import {InfoIcon} from "@/components/ui/InfoIcon.tsx";
-import TextInputField from "@/components/form/TextInputField.tsx";
+import { FourFtSchemaT, QuantifierField } from '@/schema/fourFtForm.ts';
+import { Label } from '@/components/ui/label.tsx';
+import { InfoIcon } from '@/components/ui/InfoIcon.tsx';
+import TextInputField from '@/components/form/TextInputField.tsx';
 
 interface Props<T extends FieldValues> {
   onSubmit: (data: T) => void;
@@ -93,21 +93,21 @@ export default function FourFtForm({
     <div className={'h-full w-full pt-4 border-gray-200'}>
       <form className={'px-4 flex flex-col items-start w-full'} onSubmit={onSubmitCheck}>
         <div className={'flex gap-4 items-center'}>
-        <FourFtDatasetField
-          datasets={datasets}
-          currentDataset={currentDataset}
-          setCurrentDataset={setCurrentDataset}
-          datasetsLoading={datasetsLoading}
-          setValue={setValue}
-        />
+          <FourFtDatasetField
+            datasets={datasets}
+            currentDataset={currentDataset}
+            setCurrentDataset={setCurrentDataset}
+            datasetsLoading={datasetsLoading}
+            setValue={setValue}
+          />
           <div className={'w-[300px]'}>
             <div className="flex gap-1 items-center">
               <Label htmlFor={`name`}>Name</Label>
               <InfoIcon textContent="Used for later identification of the procedure" />
             </div>
             <TextInputField
-                {...register(`name`)}
-                errorMessage={errors.name?.message as string | undefined}
+              {...register(`name`)}
+              errorMessage={errors.name?.message as string | undefined}
             />
           </div>
         </div>
