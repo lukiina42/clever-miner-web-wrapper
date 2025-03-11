@@ -4,16 +4,13 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog.tsx';
-import { Button } from '@/components/ui/button.tsx';
-import AddDatasetForm from '@/containers/Dataset/AddDatasetForm.tsx';
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fourFtResultsQueryOptions } from '@/api/fourft.ts';
 import { ruleQueryOptions } from '@/api/rule.ts';
 import { ClipLoader } from 'react-spinners';
-import { numberToDecimalPlaces } from '@/utils/helperFunction.ts';
+import RuleDetailDialogBase from '@/containers/4ftminer/fourFtForm/rules/RuleDetailDialogBase.tsx';
+import { ArrowTopRightOnSquareIcon, ClipboardIcon } from '@heroicons/react/24/outline';
+import { Link } from '@tanstack/react-router';
 
 type Props = {
   currentRuleId: number | null;
@@ -37,7 +34,12 @@ export default function RuleDetailDialog({ currentRuleId, closeDialog, fourFtRes
     <Dialog open={isOpen} onOpenChange={() => closeDialog()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className={'text-2xl'}>Rule detail</DialogTitle>
+          <DialogTitle className={'text-2xl flex justify-between items-center pr-8'}>
+            <div>Rule detail</div>
+            <Link to={`/fourft/${fourFtResultId}/rules/${currentRuleId}`}>
+              <ArrowTopRightOnSquareIcon className={'w-5 h-5'} />
+            </Link>
+          </DialogTitle>
           <DialogDescription>
             Here you can see the details of rule {currentRuleId}
           </DialogDescription>
@@ -47,31 +49,7 @@ export default function RuleDetailDialog({ currentRuleId, closeDialog, fourFtRes
             <ClipLoader size={48} />
           </div>
         ) : (
-          <div className={'flex flex-col gap-2'}>
-            <div className={'flex flex-col gap-1'}>
-              <div className={'flex gap-2'}>
-                <div className={'font-bold w-28'}>Base:</div>
-                <div>{params.base}</div>
-              </div>
-              <div className={'flex gap-2'}>
-                <div className={'font-bold w-28'}>Relative base:</div>
-                <div>{numberToDecimalPlaces(params.rel_base, 6)}</div>
-              </div>
-              <div className={'flex gap-2'}>
-                <div className={'font-bold w-28'}>Confidence:</div>
-                <div>{numberToDecimalPlaces(params.conf, 6)}</div>
-              </div>
-              <div className={'flex gap-2'}>
-                <div className={'font-bold w-28'}>AAD:</div>
-                <div>{numberToDecimalPlaces(params.aad, 6)}</div>
-              </div>
-              <div className={'flex gap-2'}>
-                <div className={'font-bold w-28'}>BAD:</div>
-                <div>{numberToDecimalPlaces(params.bad, 6)}</div>
-              </div>
-            </div>
-            <img src={ruleData.data.plot} alt={'Rule plot'} />
-          </div>
+          <RuleDetailDialogBase ruleParams={params} plot={ruleData?.data?.plot} />
         )}
       </DialogContent>
     </Dialog>

@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { fourFtBaseApiUrl, FourFtResultDetail, ruleSchema } from '@/api/fourft.ts';
-import { datasetSchema } from '@/api/dataset.ts';
+import { fourFtBaseApiUrl, ruleSchema } from '@/api/fourft.ts';
 import { queryOptions } from '@tanstack/react-query';
 
 const RULE_BASE_QUERY_KEY = 'rule';
@@ -10,7 +9,7 @@ const ruleDetailSchema = z.object({
   rule: ruleSchema,
 });
 
-type RuleDetail = z.infer<typeof ruleDetailSchema>;
+export type RuleDetail = z.infer<typeof ruleDetailSchema>;
 
 const ruleDetailApiUrl = (fourFtResultId: string, ruleId: string) =>
   `${fourFtBaseApiUrl}/${fourFtResultId}/rules/${ruleId}`;

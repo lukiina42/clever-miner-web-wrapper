@@ -216,7 +216,8 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         representation["succedent"] = CedentSerializer(succedents, many=True).data
 
         s3_key = representation["s3_key"]
-        
+
+        representation['rules'] = []
         if is_detail_request and s3_key is not None:
             clm = clm_init(s3_key)
             rules = clm.result['rules']

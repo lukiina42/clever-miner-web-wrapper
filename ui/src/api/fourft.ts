@@ -1,5 +1,4 @@
 import { queryOptions, useMutation } from '@tanstack/react-query';
-import { Rule } from '@/containers/4ftminer/fourFtForm/rules/FourFtRules.tsx';
 import { baseApiUrl } from '@/utils/constants.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 import { z } from 'zod';
@@ -137,6 +136,7 @@ export const ruleSchema = z.object({
 });
 
 export type Rule = z.infer<typeof ruleSchema>;
+export type RuleParams = z.infer<typeof ParamsSchema>;
 
 const fourFtResultDetailSchema = fourFtResultSchema.extend({
   dataset: datasetSchema,
