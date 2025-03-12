@@ -2,6 +2,7 @@ import { baseApiUrl } from '@/utils/constants.ts';
 import { z } from 'zod';
 import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import { Dispatch, SetStateAction } from 'react';
+import useSessionTokens from '@/hook/useGetSession.ts';
 
 // Define the Zod schema
 export const datasetSchema = z.object({
@@ -25,8 +26,10 @@ const DATASETS_COLLECTION_QUERY_KEY = ['datasets'];
 
 const datasetApiUrl = `${baseApiUrl}/dataset`;
 
-const fetchDatasets = async (): Promise<Dataset[]> => {
-  const fetchResult = await fetch(datasetApiUrl);
+const fetchDatasets = async (token: string): Promise<Dataset[]> => {
+  const fetchResult = await fetch(datasetApiUrl, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   const data = await fetchResult.json();
 
   try {
@@ -45,9 +48,11 @@ const fetchDatasets = async (): Promise<Dataset[]> => {
 };
 
 export const useGetDatasets = () => {
+  const sessionState = useSessionTokens();
+
   return useQuery<Dataset[], Error>({
     queryKey: DATASETS_COLLECTION_QUERY_KEY,
-    queryFn: () => fetchDatasets(),
+    queryFn: () => fetchDatasets(sessionState.tokens.accessToken),
   });
 };
 
@@ -59,8 +64,9 @@ interface CreateDatasetPayload {
 export const useCreateDataset = (
   queryClient: QueryClient,
   setOpenForm: Dispatch<SetStateAction<boolean>>
-) =>
-  useMutation({
+) => {
+  const sessionState = useSessionTokens();
+  return useMutation({
     mutationFn: async (dataset: CreateDatasetPayload) => {
       const data = new FormData();
       data.append('file', dataset.file);
@@ -68,6 +74,7 @@ export const useCreateDataset = (
       const response = await fetch(datasetApiUrl, {
         method: 'POST',
         body: data,
+        headers: { Authorization: `Bearer ${sessionState.tokens.accessToken}` },
       });
       if (response.status === 201) {
         await queryClient.invalidateQueries({ queryKey: DATASETS_COLLECTION_QUERY_KEY });
@@ -80,3 +87,4 @@ export const useCreateDataset = (
       throw error;
     },
   });
+};

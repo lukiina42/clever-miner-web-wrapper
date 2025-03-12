@@ -4,6 +4,7 @@ import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 import { z } from 'zod';
 import { Dataset, datasetSchema } from '@/api/dataset.ts';
 import { UseNavigateResult } from '@tanstack/react-router';
+import useSessionTokens from '@/hook/useGetSession.ts';
 
 export const fourFtBaseApiUrl = `${baseApiUrl}/fourftminer`;
 
@@ -12,8 +13,10 @@ const fourFtPutApiUrl = (id: string) => `${fourFtBaseApiUrl}/${id}/`;
 
 const FOURFT_BASE_QUERY_KEY = 'fourft';
 
-export const useCreateFourFt = (navigate: UseNavigateResult<string>) =>
-  useMutation({
+export const useCreateFourFt = (navigate: UseNavigateResult<string>) => {
+  const sessionState = useSessionTokens();
+
+  return useMutation({
     mutationFn: async (
       data: FourFtSchemaT & {
         dataset_id: string;
@@ -25,6 +28,7 @@ export const useCreateFourFt = (navigate: UseNavigateResult<string>) =>
         body: stringifiedData,
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionState.tokens.accessToken}`,
         },
       });
       //todo error handling, error boundary
@@ -47,9 +51,12 @@ export const useCreateFourFt = (navigate: UseNavigateResult<string>) =>
       throw error;
     },
   });
+};
 
-export const useFullUpdateFourFt = (id: string) =>
-  useMutation({
+export const useFullUpdateFourFt = (id: string) => {
+  const sessionState = useSessionTokens();
+
+  return useMutation({
     mutationFn: async (
       data: FourFtSchemaT & {
         dataset_id: string;
@@ -61,6 +68,7 @@ export const useFullUpdateFourFt = (id: string) =>
         body: stringifiedData,
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionState.tokens.accessToken}`,
         },
       });
       //todo error handling, error boundary
@@ -78,6 +86,7 @@ export const useFullUpdateFourFt = (id: string) =>
       throw error;
     },
   });
+};
 
 // Define the Zod schema
 const cedentSchema = z.object({
@@ -152,8 +161,16 @@ export type FourFtResultDetail = Omit<FourFtResultDetailApi, 'id' | 'dataset'> &
   dataset: Dataset;
 };
 
-const fetchFourFtResult = async (fourFtResultId: string): Promise<FourFtResultDetail> => {
-  const fetchResult = await fetch(fourFtDetailApiUrl(fourFtResultId));
+const fetchFourFtResult = async (
+  fourFtResultId: string,
+  token: string
+): Promise<FourFtResultDetail> => {
+  const fetchResult = await fetch(fourFtDetailApiUrl(fourFtResultId), {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
   const data = await fetchResult.json();
 
   try {
@@ -177,8 +194,13 @@ type FourFtResultApi = z.infer<typeof fourFtResultSchema>;
 
 export type FourFtResult = Omit<FourFtResultApi, 'id'> & { id: string };
 
-const fetchFourFtResults = async (): Promise<FourFtResult[]> => {
-  const fetchResult = await fetch(fourFtBaseApiUrl);
+const fetchFourFtResults = async (token: string): Promise<FourFtResult[]> => {
+  const fetchResult = await fetch(fourFtBaseApiUrl, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
   const data = await fetchResult.json();
 
   try {
@@ -196,13 +218,14 @@ const fetchFourFtResults = async (): Promise<FourFtResult[]> => {
   });
 };
 
-export const fourFtResultsQueryOptions = queryOptions({
-  queryKey: [FOURFT_BASE_QUERY_KEY],
-  queryFn: fetchFourFtResults,
-});
+export const fourFtResultsQueryOptions = (token: string) =>
+  queryOptions({
+    queryKey: [FOURFT_BASE_QUERY_KEY],
+    queryFn: () => fetchFourFtResults(token),
+  });
 
-export const fourFtResultQueryOptions = (fourFtResultId: string) =>
+export const fourFtResultQueryOptions = (fourFtResultId: string, token: string) =>
   queryOptions({
     queryKey: [FOURFT_BASE_QUERY_KEY, fourFtResultId],
-    queryFn: () => fetchFourFtResult(fourFtResultId),
+    queryFn: () => fetchFourFtResult(fourFtResultId, token),
   });

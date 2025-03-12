@@ -2,8 +2,9 @@ from cleverminer import cleverminer
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.exceptions import NotFound
+from rest_framework_simplejwt.authentication import JWTAuthentication
 import io
 import base64
 
@@ -19,6 +20,9 @@ import matplotlib.pyplot as plt
 
 
 class FourFtMinerView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    
     def post(self, request, *args, **kwargs):
         serializer = FourFtMinerSerializer(data=request.data)
         if serializer.is_valid():
@@ -113,6 +117,9 @@ class FourFtMinerView(APIView):
 
 
 class FourFtResultDetailView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    
     def get(self, request, id, *args, **kwargs):
         try:
             instance = FourFtResult.objects.get(id=id)
@@ -214,6 +221,8 @@ class FourFtResultDetailView(APIView):
 
 class FourFtResultRuleDetailView(RetrieveAPIView):
     serializer_class = RuleDataSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         return FourFtResult.objects.all()  # Define base queryset
