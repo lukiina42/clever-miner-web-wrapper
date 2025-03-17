@@ -12,7 +12,7 @@ class Dataset(models.Model):
     s3_key = models.CharField(max_length=256)
     rows_count = models.IntegerField(default=0)
     columns_count = models.IntegerField(default=0)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='datasets')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -48,6 +48,7 @@ class FourFtResult(models.Model):
         blank=True,
         related_name='four_ft_results'
     )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='four_ft_results')
     s3_key = models.CharField(max_length=256, blank=True, null=True)
     base = models.IntegerField(blank=True, null=True)
     confidence = models.FloatField(blank=True, null=True)

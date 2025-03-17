@@ -1,4 +1,4 @@
-import { queryOptions, useMutation } from '@tanstack/react-query';
+import { QueryClient, queryOptions, useMutation } from '@tanstack/react-query';
 import { baseApiUrl } from '@/utils/constants.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 import { z } from 'zod';
@@ -54,8 +54,9 @@ export const useCreateFourFt = (navigate: UseNavigateResult<string>) => {
   });
 };
 
-export const useFullUpdateFourFt = (id: string) => {
+export const useFullUpdateFourFt = (id: string, queryClient: QueryClient) => {
   const sessionState = useSessionTokens();
+  const token = sessionState.tokens.accessToken;
 
   return useMutation({
     mutationFn: async (
@@ -69,7 +70,7 @@ export const useFullUpdateFourFt = (id: string) => {
         body: stringifiedData,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionState.tokens.accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       //todo error handling, error boundary
@@ -79,7 +80,7 @@ export const useFullUpdateFourFt = (id: string) => {
       if (response.status === 500) {
         throw new Error('Internal server error');
       }
-      return (await response.json()) as Rule[];
+      await queryClient.invalidateQueries({ queryKey: [FOURFT_BASE_QUERY_KEY] });
     },
     onSuccess: async () => {},
     onError: (error) => {

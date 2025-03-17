@@ -11,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table.tsx';
+import { formatServerDate } from '@/utils/date.ts';
+import { DownloadIcon } from 'lucide-react';
 
 export default function Dataset() {
   const datasetsQueryResponse = useGetDatasets();
@@ -32,7 +34,7 @@ export default function Dataset() {
       <div className={'flex flex-col gap-4 w-full'}>
         <div className={'flex flex-col gap-2 w-full items-center'}>
           {isLoading ? (
-            <LoadingSpinner className="h-8 w-8 shrink-0 opacity-80" />
+            <LoadingSpinner className="h-8 w-8 mt-16 shrink-0 opacity-80" />
           ) : (
             <Table className="w-full px-4 max-w-[80rem]">
               <TableCaption className="caption-top font-bold text-left mb-2 text-lg text-black">
@@ -53,10 +55,12 @@ export default function Dataset() {
                     <TableCell className="col-span-1 font-medium">{dataset.name}</TableCell>
                     <TableCell className="col-span-1">{dataset.columns_count}</TableCell>
                     <TableCell className="col-span-1">{dataset.rows_count}</TableCell>
-                    <TableCell className="col-span-1">{dataset.created_at}</TableCell>
+                    <TableCell className="col-span-1">
+                      {formatServerDate(dataset.created_at)}
+                    </TableCell>
                     <TableCell className="col-span-1 text-right">
-                      <a target="_blank" href={dataset.url}>
-                        Download
+                      <a target="_blank" href={dataset.url} className={'flex justify-end'}>
+                        <DownloadIcon />
                       </a>
                     </TableCell>
                   </TableRow>

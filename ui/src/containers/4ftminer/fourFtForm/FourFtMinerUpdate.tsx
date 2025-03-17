@@ -24,6 +24,7 @@ import {
 } from '@/schema/fourFtForm.ts';
 import { ClipLoader } from 'react-spinners';
 import FourFtRules from '@/containers/4ftminer/fourFtForm/rules/FourFtRules.tsx';
+import { useQueryClient } from '@tanstack/react-query';
 
 export type DatasetState = {
   value: Dataset | undefined;
@@ -36,6 +37,8 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
     value: data?.dataset ?? undefined,
     errorMessage: undefined,
   };
+
+  const queryClient = useQueryClient();
 
   const initialQuantifiers = fillQuantifiers(data);
 
@@ -98,7 +101,7 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
     addAnteSucceToEnd();
   };
 
-  const processFourFtRequestMutation = useFullUpdateFourFt(data.id);
+  const processFourFtRequestMutation = useFullUpdateFourFt(data.id, queryClient);
 
   const datasetsQueryResponse = useGetDatasets();
 

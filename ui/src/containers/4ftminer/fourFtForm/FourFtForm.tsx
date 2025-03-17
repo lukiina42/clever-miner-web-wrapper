@@ -103,7 +103,7 @@ export default function FourFtForm({
           <div className={'w-[300px]'}>
             <div className="flex gap-1 items-center">
               <Label htmlFor={`name`}>Name</Label>
-              <InfoIcon textContent="Used for later identification of the procedure" />
+              <InfoIcon textContent="Used for identification of the procedure" />
             </div>
             <TextInputField
               {...register(`name`)}

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .dataset import DatasetSerializer
+from .user import UserSerializer
 from ..models import Dataset, FourFtResult, Cedent
 
 from ..utils.clm_init import clm_init
@@ -66,6 +67,7 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     con_dis_succedent_type = serializers.CharField(max_length=256)
     created_at = serializers.CharField(read_only=True)
     updated_at = serializers.CharField(read_only=True)
+    user = UserSerializer(read_only=True)
 
     # Used for POST (create) requests
     antecedent = CedentSerializer(many=True, write_only=True)
@@ -77,6 +79,7 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
 
     def create(self, validated_data):
         clm = validated_data.pop('clm', None)
+        user = validated_data.pop('user', None)  # Get the user from validated_data
 
         antecedents = validated_data.pop('antecedent', [])
         succedents = validated_data.pop('succedent', [])
@@ -93,8 +96,8 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
 
         validated_data.update({'s3_key': s3_key})
 
-        # Create the FourFtResult instance
-        four_ft_result = FourFtResult.objects.create(dataset=dataset, **validated_data)
+        # Create the FourFtResult instance with user
+        four_ft_result = FourFtResult.objects.create(dataset=dataset, user=user, **validated_data)
 
         # Create Cedent instances for antecedents
         Cedent.objects.bulk_create([

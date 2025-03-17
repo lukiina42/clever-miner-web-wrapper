@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from ..models import Dataset, FourFtResult, Cedent
 from django.conf import settings
+from django.contrib.auth.models import User
+from .user import UserSerializer
 
 from ..utils.s3 import create_presigned_url, dataset_s3_upload
 
@@ -26,14 +28,16 @@ def get_delimiter(value):
 class DatasetSerializer(serializers.ModelSerializer):
     file = serializers.FileField(write_only=True, required=True)
     delimiter = serializers.CharField(max_length=16)
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Dataset
-        fields = ['id', 's3_key', 'file', 'created_at', 'name', 'delimiter', 'rows_count', 'columns_count']
-        read_only_fields = ['s3_key', 'created_at', 'name', 'rows_count', 'columns_count']
+        fields = ['id', 's3_key', 'file', 'created_at', 'name', 'delimiter', 'rows_count', 'columns_count', 'user']
+        read_only_fields = ['s3_key', 'created_at', 'name', 'rows_count', 'columns_count', 'user']
 
     def create(self, validated_data):
         file = validated_data.pop('file')
+        user = validated_data.pop('user', None)  # Get the user from validated_data
 
         if not file or file.size == 0:
             raise serializers.ValidationError("Uploaded file is empty or invalid.")
@@ -51,8 +55,14 @@ class DatasetSerializer(serializers.ModelSerializer):
         s3_key = dataset_s3_upload(file)
 
         # Save the dataset information in the database
-        dataset = Dataset(name=file.name, s3_key=s3_key, delimiter=delimiter, rows_count=rows_count,
-                          columns_count=columns_count)
+        dataset = Dataset(
+            name=file.name, 
+            s3_key=s3_key, 
+            delimiter=delimiter, 
+            rows_count=rows_count,
+            columns_count=columns_count,
+            user=user  # Associate with the user
+        )
         dataset.save()
 
         return dataset

@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework_simplejwt.authentication import JWTAuthentication
 import io
 import base64
@@ -28,6 +28,15 @@ class FourFtMinerView(APIView):
         if serializer.is_valid():
             validated_data = serializer.validated_data
             dataset_id = validated_data['dataset_id']
+            
+            # Check if the dataset belongs to the current user
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                if dataset.user and dataset.user != request.user:
+                    raise PermissionDenied("You do not have permission to use this dataset")
+            except Dataset.DoesNotExist:
+                raise NotFound(detail=f"Dataset with id {dataset_id} not found.")
+                
             base = validated_data['base']
             confidence = validated_data['confidence']
             rel_base = validated_data['rel_base']
@@ -60,12 +69,6 @@ class FourFtMinerView(APIView):
                 }
                 for succedent in succedents
             ]
-
-            # Fetch the dataset by dataset_id
-            try:
-                dataset = Dataset.objects.get(id=dataset_id)
-            except Dataset.DoesNotExist:
-                raise NotFound(detail=f"Dataset with id {dataset_id} not found.")
 
             # Use get_url method from DatasetSerializer to get the presigned URL
             signed_url = DatasetSerializer(dataset).get_url(dataset)
@@ -97,20 +100,18 @@ class FourFtMinerView(APIView):
                 }
             )
 
-            # Save to db
-            result = serializer.save(clm=clm)
-
-            # draw_rule = clm.draw_rule(1)
-            # clm.load(get_saved_result_path(23))
+            # Save to db with the current user
+            result = serializer.save(clm=clm, user=request.user)
 
             return Response({'id': result.id}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, *args, **kwargs):
         '''
-        List all the four ft results
+        List all the four ft results for the current user
         '''
-        four_ft_results = FourFtResult.objects.all()
+        # Filter results by the current user
+        four_ft_results = FourFtResult.objects.filter(user=request.user)
         serializer = FourFtMinerSerializer(four_ft_results, many=True, context={"request": request})
         data = serializer.data
         return Response(data, status=status.HTTP_200_OK)
@@ -123,6 +124,11 @@ class FourFtResultDetailView(APIView):
     def get(self, request, id, *args, **kwargs):
         try:
             instance = FourFtResult.objects.get(id=id)
+            
+            # Check if the result belongs to the current user
+            if instance.user and instance.user != request.user:
+                raise PermissionDenied("You do not have permission to access this result")
+                
             serializer = FourFtMinerSerializer(instance, context={"request": request})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except FourFtResult.DoesNotExist:
@@ -131,6 +137,11 @@ class FourFtResultDetailView(APIView):
     def put(self, request, id, *args, **kwargs):
         try:
             instance = FourFtResult.objects.get(id=id)  # Fetch the existing object
+            
+            # Check if the result belongs to the current user
+            if instance.user and instance.user != request.user:
+                raise PermissionDenied("You do not have permission to modify this result")
+                
         except FourFtResult.DoesNotExist:
             return Response({"error": f'Four ft result with id ${id} not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -138,6 +149,15 @@ class FourFtResultDetailView(APIView):
         if serializer.is_valid():
             validated_data = serializer.validated_data
             dataset_id = validated_data['dataset_id']
+            
+            # Check if the dataset belongs to the current user
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                if dataset.user and dataset.user != request.user:
+                    raise PermissionDenied("You do not have permission to use this dataset")
+            except Dataset.DoesNotExist:
+                return Response({"error": f"Dataset with id {dataset_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+                
             base = validated_data['base']
             confidence = validated_data['confidence']
             rel_base = validated_data['rel_base']
@@ -170,12 +190,6 @@ class FourFtResultDetailView(APIView):
                 }
                 for succedent in succedents
             ]
-
-            # Fetch the dataset by dataset_id
-            try:
-                dataset = Dataset.objects.get(id=dataset_id)
-            except Dataset.DoesNotExist:
-                return Response({"error": f"Dataset with id {dataset_id} not found."}, status=status.HTTP_404_NOT_FOUND)
 
             # Use get_url method from DatasetSerializer to get the presigned URL
             signed_url = DatasetSerializer(dataset).get_url(dataset)
@@ -225,7 +239,8 @@ class FourFtResultRuleDetailView(RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return FourFtResult.objects.all()  # Define base queryset
+        # Filter queryset by the current user
+        return FourFtResult.objects.filter(user=self.request.user)
 
     def get_object(self):
         """
