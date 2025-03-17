@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useLocation } from '@tanstack/react-router';
 import PageHeading from '@/components/ui/PageHeading.tsx';
 
-export const Route = createFileRoute('/_fourft')({
+export const Route = createFileRoute('/_protected/_fourft')({
   component: FourFtLayout,
 });
 

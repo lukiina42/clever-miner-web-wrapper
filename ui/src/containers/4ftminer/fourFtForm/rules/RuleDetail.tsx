@@ -1,6 +1,6 @@
 import { numberToDecimalPlaces } from '@/utils/helperFunction.ts';
 import { type RuleDetail } from '@/api/rule.ts';
-import { Link, useParams, useRouteContext } from '@tanstack/react-router';
+import { Link, useParams } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button.tsx';
 
 type Props = {
@@ -11,7 +11,7 @@ export default function RuleDetail({ data }: Props) {
   const ruleParams = data.rule.params;
   const plot = data.plot;
 
-  const { fourftId } = useParams({ from: '/_fourft/fourft/$fourftId/rules/$ruleId/' });
+  const { fourftId } = useParams({ from: '/_protected/_fourft/fourft/$fourftId/rules/$ruleId/' });
 
   return (
     <div className={'flex flex-col gap-2 p-4'}>

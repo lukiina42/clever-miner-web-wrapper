@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Dataset, datasetSchema } from '@/api/dataset.ts';
 import { UseNavigateResult } from '@tanstack/react-router';
 import useSessionTokens from '@/hook/useGetSession.ts';
+import { authFetch } from '@/utils/authUtils.ts';
 
 export const fourFtBaseApiUrl = `${baseApiUrl}/fourftminer`;
 
@@ -195,7 +196,7 @@ type FourFtResultApi = z.infer<typeof fourFtResultSchema>;
 export type FourFtResult = Omit<FourFtResultApi, 'id'> & { id: string };
 
 const fetchFourFtResults = async (token: string): Promise<FourFtResult[]> => {
-  const fetchResult = await fetch(fourFtBaseApiUrl, {
+  const fetchResult = await authFetch(fourFtBaseApiUrl, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,

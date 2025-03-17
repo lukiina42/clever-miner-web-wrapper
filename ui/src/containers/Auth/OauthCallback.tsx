@@ -1,8 +1,9 @@
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { exchangeCodeForTokens } from '@/api/auth.ts';
 import useSessionTokens from '@/hook/useGetSession.ts';
+import { Button } from '@/components/ui/button.tsx';
 
 export default function OauthCallback() {
   const navigate = useNavigate();
@@ -28,17 +29,16 @@ export default function OauthCallback() {
       mutate(code);
     } else {
       // Handle missing code error
-      navigate({ to: '/login' });
+      navigate({ to: '/auth' });
     }
   }, [mutate, navigate]);
 
   if (isPending) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen min-w-screen">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Processing your login</h2>
           <p className="text-gray-600">Please wait while we complete the authentication...</p>
-          {/* You could add a spinner here */}
         </div>
       </div>
     );
@@ -46,18 +46,17 @@ export default function OauthCallback() {
 
   if (isError) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen min-w-screen">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2 text-red-600">Authentication Error</h2>
           <p className="text-gray-600">
             {error instanceof Error ? error.message : 'Failed to complete authentication'}
           </p>
-          <button
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            onClick={() => navigate({ to: '/login' })}
-          >
-            Return to Login
-          </button>
+          <Link to="/auth">
+            <Button type="button" className="cursor-pointer bg-black hover:bg-gray-800 w-44">
+              Return to login
+            </Button>
+          </Link>
         </div>
       </div>
     );
@@ -65,7 +64,7 @@ export default function OauthCallback() {
 
   // This will show briefly before the redirect happens
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center min-h-screen min-w-screen">
       <div className="text-center">
         <h2 className="text-xl font-semibold mb-2">Login Successful</h2>
         <p className="text-gray-600">Redirecting you to the dashboard...</p>

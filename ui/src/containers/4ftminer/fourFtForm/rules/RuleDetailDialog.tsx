@@ -9,8 +9,9 @@ import { useQuery } from '@tanstack/react-query';
 import { ruleQueryOptions } from '@/api/rule.ts';
 import { ClipLoader } from 'react-spinners';
 import RuleDetailDialogBase from '@/containers/4ftminer/fourFtForm/rules/RuleDetailDialogBase.tsx';
-import { ArrowTopRightOnSquareIcon, ClipboardIcon } from '@heroicons/react/24/outline';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { Link } from '@tanstack/react-router';
+import useGetSession from '@/hook/useGetSession.ts';
 
 type Props = {
   currentRuleId: number | null;
@@ -21,8 +22,10 @@ type Props = {
 export default function RuleDetailDialog({ currentRuleId, closeDialog, fourFtResultId }: Props) {
   const isOpen = currentRuleId !== null;
 
+  const session = useGetSession();
+
   const ruleData = useQuery({
-    ...ruleQueryOptions(fourFtResultId, currentRuleId),
+    ...ruleQueryOptions(fourFtResultId, currentRuleId, session?.tokens?.accessToken),
     enabled: currentRuleId !== null,
   });
 

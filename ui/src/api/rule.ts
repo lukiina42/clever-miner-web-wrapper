@@ -14,8 +14,17 @@ export type RuleDetail = z.infer<typeof ruleDetailSchema>;
 const ruleDetailApiUrl = (fourFtResultId: string, ruleId: string) =>
   `${fourFtBaseApiUrl}/${fourFtResultId}/rules/${ruleId}`;
 
-const fetchRule = async (fourFtResultId: string, ruleId: string): Promise<RuleDetail> => {
-  const fetchResult = await fetch(ruleDetailApiUrl(fourFtResultId, ruleId));
+const fetchRule = async (
+  fourFtResultId: string,
+  ruleId: string,
+  token: string
+): Promise<RuleDetail> => {
+  const fetchResult = await fetch(ruleDetailApiUrl(fourFtResultId, ruleId), {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
   const data = await fetchResult.json();
 
   try {
@@ -28,8 +37,8 @@ const fetchRule = async (fourFtResultId: string, ruleId: string): Promise<RuleDe
   return data;
 };
 
-export const ruleQueryOptions = (fourFtResultId: string, ruleId: number) =>
+export const ruleQueryOptions = (fourFtResultId: string, ruleId: number, token: string) =>
   queryOptions({
     queryKey: [RULE_BASE_QUERY_KEY, fourFtResultId, ruleId],
-    queryFn: () => fetchRule(fourFtResultId, ruleId.toString()),
+    queryFn: () => fetchRule(fourFtResultId, ruleId.toString(), token),
   });

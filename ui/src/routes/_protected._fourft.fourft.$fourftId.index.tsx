@@ -5,7 +5,7 @@ import FourFtMinerUpdate from '@/containers/4ftminer/fourFtForm/FourFtMinerUpdat
 import SuspenseWrapper from '@/components/suspense/SuspenseWrapper.tsx';
 import useSessionTokens from '@/hook/useGetSession.ts';
 
-export const Route = createFileRoute('/_fourft/fourft/$fourftId/')({
+export const Route = createFileRoute('/_protected/_fourft/fourft/$fourftId/')({
   component: FourFtDetailSuspense,
 });
 

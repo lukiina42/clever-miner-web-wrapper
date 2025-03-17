@@ -5,7 +5,7 @@ import { fourFtResultsQueryOptions } from '@/api/fourft.ts';
 import FourFtList from '@/containers/4ftminer/fourFtTable/FourFtList.tsx';
 import useSessionTokens from '@/hook/useGetSession.ts';
 
-export const Route = createFileRoute('/_fourft/fourft/')({
+export const Route = createFileRoute('/_protected/_fourft/fourft/')({
   component: FourFtResultsSuspense,
 });
 

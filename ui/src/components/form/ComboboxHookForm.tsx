@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils.ts';
 import { useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loadingSpinner.tsx';
-import { Portal } from '@radix-ui/react-dialog';
 
 interface Value {
   id: string;
