@@ -55,6 +55,8 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     dataset_id = serializers.IntegerField()
     name = serializers.CharField(max_length=256, required=True, allow_null=False)
     s3_key = serializers.CharField(max_length=256, required=False, allow_null=True)
+    rules_count = serializers.IntegerField(read_only=True)
+    dataset_name = serializers.CharField(read_only=True)
     base = serializers.IntegerField(min_value=1, max_value=1000000, required=False, allow_null=True)
     confidence = serializers.FloatField(max_value=1, required=False, allow_null=True)
     rel_base = serializers.FloatField(max_value=1, required=False, allow_null=True)
@@ -95,6 +97,8 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             s3_key = clm_s3_upload(clm)
 
         validated_data.update({'s3_key': s3_key})
+        validated_data.update({'rules_count': len(clm.rulelist)})
+        validated_data.update({'dataset_name': dataset.name})
 
         # Create the FourFtResult instance with user
         four_ft_result = FourFtResult.objects.create(dataset=dataset, user=user, **validated_data)
@@ -189,6 +193,7 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             s3_key = clm_s3_upload(clm, instance.s3_key)
 
         instance.s3_key = s3_key
+        instance.rules_count = len(clm.rulelist)
 
         # Save updated instance
         instance.save()

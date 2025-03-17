@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import { Dispatch, SetStateAction } from 'react';
 import useSessionTokens from '@/hook/useGetSession.ts';
+import { authFetch } from '@/utils/authUtils.ts';
 
 // Define the Zod schema
 export const datasetSchema = z.object({
@@ -27,7 +28,7 @@ const DATASETS_COLLECTION_QUERY_KEY = ['datasets'];
 const datasetApiUrl = `${baseApiUrl}/dataset`;
 
 const fetchDatasets = async (token: string): Promise<Dataset[]> => {
-  const fetchResult = await fetch(datasetApiUrl, {
+  const fetchResult = await authFetch(datasetApiUrl, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await fetchResult.json();
@@ -71,7 +72,7 @@ export const useCreateDataset = (
       const data = new FormData();
       data.append('file', dataset.file);
       data.append('delimiter', dataset.delimiter);
-      const response = await fetch(datasetApiUrl, {
+      const response = await authFetch(datasetApiUrl, {
         method: 'POST',
         body: data,
         headers: { Authorization: `Bearer ${sessionState.tokens.accessToken}` },

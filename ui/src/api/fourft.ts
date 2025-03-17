@@ -24,7 +24,7 @@ export const useCreateFourFt = (navigate: UseNavigateResult<string>) => {
       }
     ) => {
       const stringifiedData = JSON.stringify(data);
-      const response = await fetch(fourFtBaseApiUrl, {
+      const response = await authFetch(fourFtBaseApiUrl, {
         method: 'POST',
         body: stringifiedData,
         headers: {
@@ -65,7 +65,7 @@ export const useFullUpdateFourFt = (id: string, queryClient: QueryClient) => {
       }
     ) => {
       const stringifiedData = JSON.stringify(data);
-      const response = await fetch(fourFtPutApiUrl(id), {
+      const response = await authFetch(fourFtPutApiUrl(id), {
         method: 'PUT',
         body: stringifiedData,
         headers: {
@@ -109,6 +109,8 @@ const fourFtResultSchema = z.object({
   name: z.string(),
   s3_key: z.string().nullable(),
   base: z.number().nullable(),
+  dataset_name: z.string(),
+  rules_count: z.number(),
   confidence: z.number().nullable(),
   rel_base: z.number().nullable(),
   aad: z.number().nullable(),
@@ -167,7 +169,7 @@ const fetchFourFtResult = async (
   fourFtResultId: string,
   token: string
 ): Promise<FourFtResultDetail> => {
-  const fetchResult = await fetch(fourFtDetailApiUrl(fourFtResultId), {
+  const fetchResult = await authFetch(fourFtDetailApiUrl(fourFtResultId), {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,

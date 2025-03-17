@@ -32,8 +32,10 @@ export default function FourFtList({ fourFtResults }: { fourFtResults: FourFtRes
               A list of created procedures
             </TableCaption>
             <TableHeader>
-              <TableRow className="grid grid-cols-5 gap-4">
+              <TableRow className="grid grid-cols-6 gap-4">
                 <TableHead className="col-span-1">Procedure name</TableHead>
+                <TableHead className="col-span-1">Amount of rules</TableHead>
+                <TableHead className="col-span-1">Name of dataset</TableHead>
                 <TableHead className="col-span-1">Created at</TableHead>
                 <TableHead className="col-span-1">Last updated at</TableHead>
                 <TableHead className="col-span-1">View</TableHead>
@@ -44,9 +46,11 @@ export default function FourFtList({ fourFtResults }: { fourFtResults: FourFtRes
                 return (
                   <TableRow
                     key={fourftResult.id}
-                    className="grid grid-cols-5 gap-4 hover:bg-muted/50"
+                    className="grid grid-cols-6 gap-4 hover:bg-muted/50"
                   >
                     <TableCell className="col-span-1 font-medium">{fourftResult.name}</TableCell>
+                    <TableCell className="col-span-1">{fourftResult.rules_count}</TableCell>
+                    <TableCell className="col-span-1">{fourftResult.dataset_name}</TableCell>
                     <TableCell className="col-span-1">
                       {formatServerDate(fourftResult.created_at)}
                     </TableCell>

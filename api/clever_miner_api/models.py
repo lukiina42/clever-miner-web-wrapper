@@ -48,8 +48,11 @@ class FourFtResult(models.Model):
         blank=True,
         related_name='four_ft_results'
     )
+    dataset_name = models.CharField(max_length=256, null=False, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='four_ft_results')
     s3_key = models.CharField(max_length=256, blank=True, null=True)
+    rules_count = models.IntegerField(null=False)
+    # parameters
     base = models.IntegerField(blank=True, null=True)
     confidence = models.FloatField(blank=True, null=True)
     rel_base = models.FloatField(blank=True, null=True)

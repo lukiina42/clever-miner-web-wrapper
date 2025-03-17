@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { fourFtBaseApiUrl, ruleSchema } from '@/api/fourft.ts';
 import { queryOptions } from '@tanstack/react-query';
+import { authFetch } from '@/utils/authUtils.ts';
 
 const RULE_BASE_QUERY_KEY = 'rule';
 
@@ -19,7 +20,7 @@ const fetchRule = async (
   ruleId: string,
   token: string
 ): Promise<RuleDetail> => {
-  const fetchResult = await fetch(ruleDetailApiUrl(fourFtResultId, ruleId), {
+  const fetchResult = await authFetch(ruleDetailApiUrl(fourFtResultId, ruleId), {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
