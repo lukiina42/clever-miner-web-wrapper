@@ -44,7 +44,7 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
 
   const [currentDatasetState, setCurrentDatasetState] = useState<DatasetState>(initialDatasetState);
 
-  const [formIsOpen, setFormIsOpen] = useState(true);
+  const [formIsOpen, setFormIsOpen] = useState(false);
 
   const [currentQuantifiers, setCurrentQuantifiers] =
     useState<QuantifierField[]>(initialQuantifiers);

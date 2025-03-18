@@ -78,31 +78,16 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     class Meta:
         model = FourFtResult
         fields = "__all__"
-
-    def create(self, validated_data):
-        clm = validated_data.pop('clm', None)
-        user = validated_data.pop('user', None)  # Get the user from validated_data
-
-        antecedents = validated_data.pop('antecedent', [])
-        succedents = validated_data.pop('succedent', [])
-        dataset_id = validated_data.pop('dataset_id')
-
-        try:
-            dataset = Dataset.objects.get(id=dataset_id)
-        except Dataset.DoesNotExist:
-            raise serializers.ValidationError({"dataset_id": f"Dataset with id {dataset_id} not found."})
-
+        
+    def _process_s3_and_clm(self, clm, existing_s3_key=None):
+        """Helper method to process CLM object and upload to S3"""
         s3_key = None
         if len(clm.rulelist) > 0:
-            s3_key = clm_s3_upload(clm)
-
-        validated_data.update({'s3_key': s3_key})
-        validated_data.update({'rules_count': len(clm.rulelist)})
-        validated_data.update({'dataset_name': dataset.name})
-
-        # Create the FourFtResult instance with user
-        four_ft_result = FourFtResult.objects.create(dataset=dataset, user=user, **validated_data)
-
+            s3_key = clm_s3_upload(clm, existing_s3_key)
+        return s3_key, len(clm.rulelist)
+        
+    def _create_cedents(self, four_ft_result, antecedents, succedents):
+        """Helper method to create cedent objects for antecedents and succedents"""
         # Create Cedent instances for antecedents
         Cedent.objects.bulk_create([
             Cedent(
@@ -127,6 +112,35 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             ) for succedent in succedents
         ])
 
+    def create(self, validated_data):
+        clm = validated_data.pop('clm', None)
+        user = validated_data.pop('user', None)  # Get the user from validated_data
+
+        antecedents = validated_data.pop('antecedent', [])
+        succedents = validated_data.pop('succedent', [])
+        dataset_id = validated_data.pop('dataset_id')
+
+        try:
+            dataset = Dataset.objects.get(id=dataset_id)
+        except Dataset.DoesNotExist:
+            raise serializers.ValidationError({"dataset_id": f"Dataset with id {dataset_id} not found."})
+
+        # Process S3 and CLM
+        s3_key, rules_count = self._process_s3_and_clm(clm)
+
+        # Update validated data with additional information
+        validated_data.update({
+            's3_key': s3_key,
+            'rules_count': rules_count,
+            'dataset_name': dataset.name
+        })
+
+        # Create the FourFtResult instance with user
+        four_ft_result = FourFtResult.objects.create(dataset=dataset, user=user, **validated_data)
+
+        # Create cedents
+        self._create_cedents(four_ft_result, antecedents, succedents)
+
         return four_ft_result
 
 
@@ -137,9 +151,9 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         - Recreate new Cedents based on updated data
         - Optionally re-run the cleverminer process if needed
         """
-
         clm = validated_data.pop('clm', None)
 
+        # Delete existing S3 object if it exists
         current_s3_key = instance.s3_key
         if current_s3_key is not None:
             dataset_s3_delete(current_s3_key)
@@ -164,36 +178,15 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         # Remove all existing cedents for the current result
         Cedent.objects.filter(four_ft_result=instance).delete()
 
-        # Recreate new Cedent instances for antecedents
-        Cedent.objects.bulk_create([
-            Cedent(
-                name=antecedent['name'],
-                type=antecedent['type'],
-                min_len=antecedent['min_len'],
-                max_len=antecedent['max_len'],
-                role=Cedent.ANTECEDENT,
-                four_ft_result=instance
-            ) for antecedent in antecedents
-        ])
+        # Create new cedents
+        self._create_cedents(instance, antecedents, succedents)
 
-        # Recreate new Cedent instances for succedents
-        Cedent.objects.bulk_create([
-            Cedent(
-                name=succedent['name'],
-                type=succedent['type'],
-                min_len=succedent['min_len'],
-                max_len=succedent['max_len'],
-                role=Cedent.SUCCEDENT,
-                four_ft_result=instance
-            ) for succedent in succedents
-        ])
-
-        s3_key = None
-        if len(clm.rulelist) > 0:
-            s3_key = clm_s3_upload(clm, instance.s3_key)
-
+        # Process S3 and CLM
+        s3_key, rules_count = self._process_s3_and_clm(clm, instance.s3_key)
+        
+        # Update instance with S3 key and rules count
         instance.s3_key = s3_key
-        instance.rules_count = len(clm.rulelist)
+        instance.rules_count = rules_count
 
         # Save updated instance
         instance.save()

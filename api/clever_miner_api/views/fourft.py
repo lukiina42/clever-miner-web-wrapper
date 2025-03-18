@@ -23,82 +23,100 @@ class FourFtMinerView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
+    @staticmethod
+    def _get_dataset_with_permission_check(dataset_id, user):
+        """Helper method to get a dataset and check user permissions"""
+        try:
+            dataset = Dataset.objects.get(id=dataset_id)
+            if dataset.user and dataset.user != user:
+                raise PermissionDenied("You do not have permission to use this dataset")
+            return dataset
+        except Dataset.DoesNotExist:
+            raise NotFound(detail=f"Dataset with id {dataset_id} not found.")
+    
+    @staticmethod
+    def _process_mining_data(validated_data, dataset):
+        """Helper method to process mining data and run cleverminer"""
+        # Extract parameters from validated data
+        base = validated_data['base']
+        confidence = validated_data['confidence']
+        rel_base = validated_data['rel_base']
+        aad = validated_data['aad']
+        antecedents = validated_data.get('antecedent', [])
+        succedents = validated_data.get('succedent', [])
+        ante_min_len = validated_data.get('ante_min_len')
+        ante_max_len = validated_data.get('ante_max_len')
+        succe_min_len = validated_data.get('succe_min_len')
+        succe_max_len = validated_data.get('succe_max_len')
+        con_dis_antecedent_type = validated_data.get('con_dis_antecedent_type')
+        con_dis_succedent_type = validated_data.get('con_dis_succedent_type')
+
+        # Prepare antecedent and succedent attributes
+        antecedent_attributes = [
+            {
+                'name': antecedent['name'],
+                'type': antecedent['type'],
+                'minlen': antecedent['min_len'],
+                'maxlen': antecedent['max_len']
+            }
+            for antecedent in antecedents
+        ]
+
+        succedent_attributes = [
+            {
+                'name': succedent['name'],
+                'type': succedent['type'],
+                'minlen': succedent['min_len'],
+                'maxlen': succedent['max_len']
+            }
+            for succedent in succedents
+        ]
+
+        # Get dataset URL and load the file
+        signed_url = DatasetSerializer(dataset).get_url(dataset)
+        file = pd.read_csv(signed_url, encoding='cp1250', sep=dataset.delimiter)
+
+        # Prepare quantifiers
+        quantifiers = {
+            'conf': confidence,
+            'aad': aad,
+            'Base': base,
+            'relbase': rel_base
+        }
+
+        quantifiers = {key: value for key, value in quantifiers.items() if value is not None}
+
+        if len(quantifiers) == 0:
+            quantifiers = {'Base': 0}
+
+        # Run cleverminer
+        clm = cleverminer(
+            df=file,
+            proc='4ftMiner',
+            quantifiers=quantifiers,
+            ante={
+                'attributes': antecedent_attributes, 'minlen': ante_min_len, 'maxlen': ante_max_len,
+                'type': con_dis_antecedent_type
+            },
+            succ={
+                'attributes': succedent_attributes, 'minlen': succe_min_len, 'maxlen': succe_max_len,
+                'type': con_dis_succedent_type
+            }
+        )
+        
+        return clm
+    
     def post(self, request, *args, **kwargs):
         serializer = FourFtMinerSerializer(data=request.data)
         if serializer.is_valid():
             validated_data = serializer.validated_data
             dataset_id = validated_data['dataset_id']
             
-            # Check if the dataset belongs to the current user
-            try:
-                dataset = Dataset.objects.get(id=dataset_id)
-                if dataset.user and dataset.user != request.user:
-                    raise PermissionDenied("You do not have permission to use this dataset")
-            except Dataset.DoesNotExist:
-                raise NotFound(detail=f"Dataset with id {dataset_id} not found.")
-                
-            base = validated_data['base']
-            confidence = validated_data['confidence']
-            rel_base = validated_data['rel_base']
-            aad = validated_data['aad']
-            antecedents = validated_data.get('antecedent', [])
-            succedents = validated_data.get('succedent', [])
-            ante_min_len = validated_data.get('ante_min_len')
-            ante_max_len = validated_data.get('ante_max_len')
-            succe_min_len = validated_data.get('succe_min_len')
-            succe_max_len = validated_data.get('succe_max_len')
-            con_dis_antecedent_type = validated_data.get('con_dis_antecedent_type')
-            con_dis_succedent_type = validated_data.get('con_dis_succedent_type')
-
-            antecedent_attributes = [
-                {
-                    'name': antecedent['name'],
-                    'type': antecedent['type'],
-                    'minlen': antecedent['min_len'],
-                    'maxlen': antecedent['max_len']
-                }
-                for antecedent in antecedents
-            ]
-
-            succedent_attributes = [
-                {
-                    'name': succedent['name'],
-                    'type': succedent['type'],
-                    'minlen': succedent['min_len'],
-                    'maxlen': succedent['max_len']
-                }
-                for succedent in succedents
-            ]
-
-            # Use get_url method from DatasetSerializer to get the presigned URL
-            signed_url = DatasetSerializer(dataset).get_url(dataset)
-            file = pd.read_csv(signed_url, encoding='cp1250', sep=dataset.delimiter)
-
-            quantifiers = {
-                'conf': confidence,
-                'aad': aad,
-                'Base': base,
-                'relbase': rel_base
-            }
-
-            quantifiers = {key: value for key, value in quantifiers.items() if value is not None}
-
-            if len(quantifiers) == 0:
-                quantifiers = {'Base': 0}
-
-            clm = cleverminer(
-                df=file,
-                proc='4ftMiner',
-                quantifiers=quantifiers,
-                ante={
-                    'attributes': antecedent_attributes, 'minlen': ante_min_len, 'maxlen': ante_max_len,
-                    'type': con_dis_antecedent_type
-                },
-                succ={
-                    'attributes': succedent_attributes, 'minlen': succe_min_len, 'maxlen': succe_max_len,
-                    'type': con_dis_succedent_type
-                }
-            )
+            # Get dataset with permission check
+            dataset = self._get_dataset_with_permission_check(dataset_id, request.user)
+            
+            # Process mining data
+            clm = self._process_mining_data(validated_data, dataset)
 
             # Save to db with the current user
             result = serializer.save(clm=clm, user=request.user)
@@ -121,116 +139,59 @@ class FourFtResultDetailView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
+    @staticmethod
+    def _get_result_with_permission_check(result_id, user):
+        """Helper method to get a result and check user permissions"""
+        try:
+            instance = FourFtResult.objects.get(id=result_id)
+            if instance.user and instance.user != user:
+                raise PermissionDenied("You do not have permission to access this result")
+            return instance
+        except FourFtResult.DoesNotExist:
+            raise NotFound(detail=f"FourFtResult with id {result_id} not found.")
+    
     def get(self, request, id, *args, **kwargs):
         try:
-            instance = FourFtResult.objects.get(id=id)
-            
-            # Check if the result belongs to the current user
-            if instance.user and instance.user != request.user:
-                raise PermissionDenied("You do not have permission to access this result")
-                
+            instance = self._get_result_with_permission_check(id, request.user)
             serializer = FourFtMinerSerializer(instance, context={"request": request})
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except FourFtResult.DoesNotExist:
-            return Response({"error": f'Four ft result with id ${id} not found'}, status=status.HTTP_404_NOT_FOUND)
+        except NotFound as e:
+            return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
 
     def put(self, request, id, *args, **kwargs):
         try:
-            instance = FourFtResult.objects.get(id=id)  # Fetch the existing object
+            # Get existing result with permission check
+            instance = self._get_result_with_permission_check(id, request.user)
             
-            # Check if the result belongs to the current user
-            if instance.user and instance.user != request.user:
-                raise PermissionDenied("You do not have permission to modify this result")
+            # Validate the data
+            serializer = FourFtMinerSerializer(instance, data=request.data, partial=False)
+            if serializer.is_valid():
+                validated_data = serializer.validated_data
+                dataset_id = validated_data['dataset_id']
                 
-        except FourFtResult.DoesNotExist:
-            return Response({"error": f'Four ft result with id ${id} not found'}, status=status.HTTP_404_NOT_FOUND)
+                # Get dataset with permission check
+                dataset = FourFtMinerView._get_dataset_with_permission_check(dataset_id, request.user)
+                
+                # Process mining data
+                clm = FourFtMinerView._process_mining_data(validated_data, dataset)
+                
+                # Add rule text to rules
+                for rule in clm.rulelist:
+                    rule['ruletext'] = clm.get_ruletext(rule['rule_id'])
 
-        serializer = FourFtMinerSerializer(instance, data=request.data, partial=False)  # Full update
-        if serializer.is_valid():
-            validated_data = serializer.validated_data
-            dataset_id = validated_data['dataset_id']
+                # Save updated data to db
+                serializer.save(clm=clm)
+
+                return Response(None, status=status.HTTP_200_OK)
             
-            # Check if the dataset belongs to the current user
-            try:
-                dataset = Dataset.objects.get(id=dataset_id)
-                if dataset.user and dataset.user != request.user:
-                    raise PermissionDenied("You do not have permission to use this dataset")
-            except Dataset.DoesNotExist:
-                return Response({"error": f"Dataset with id {dataset_id} not found."}, status=status.HTTP_404_NOT_FOUND)
-                
-            base = validated_data['base']
-            confidence = validated_data['confidence']
-            rel_base = validated_data['rel_base']
-            aad = validated_data['aad']
-            antecedents = validated_data.get('antecedent', [])
-            succedents = validated_data.get('succedent', [])
-            ante_min_len = validated_data.get('ante_min_len')
-            ante_max_len = validated_data.get('ante_max_len')
-            succe_min_len = validated_data.get('succe_min_len')
-            succe_max_len = validated_data.get('succe_max_len')
-            con_dis_antecedent_type = validated_data.get('con_dis_antecedent_type')
-            con_dis_succedent_type = validated_data.get('con_dis_succedent_type')
-
-            antecedent_attributes = [
-                {
-                    'name': antecedent['name'],
-                    'type': antecedent['type'],
-                    'minlen': antecedent['min_len'],
-                    'maxlen': antecedent['max_len']
-                }
-                for antecedent in antecedents
-            ]
-
-            succedent_attributes = [
-                {
-                    'name': succedent['name'],
-                    'type': succedent['type'],
-                    'minlen': succedent['min_len'],
-                    'maxlen': succedent['max_len']
-                }
-                for succedent in succedents
-            ]
-
-            # Use get_url method from DatasetSerializer to get the presigned URL
-            signed_url = DatasetSerializer(dataset).get_url(dataset)
-            file = pd.read_csv(signed_url, encoding='cp1250', sep=dataset.delimiter)
-
-            quantifiers = {
-                'conf': confidence,
-                'aad': aad,
-                'Base': base,
-                'relbase': rel_base
-            }
-
-            quantifiers = {key: value for key, value in quantifiers.items() if value is not None}
-
-            if len(quantifiers) == 0:
-                quantifiers = {'Base': 0}
-
-            clm = cleverminer(
-                df=file,
-                proc='4ftMiner',
-                quantifiers=quantifiers,
-                ante={
-                    'attributes': antecedent_attributes, 'minlen': ante_min_len, 'maxlen': ante_max_len,
-                    'type': con_dis_antecedent_type
-                },
-                succ={
-                    'attributes': succedent_attributes, 'minlen': succe_min_len, 'maxlen': succe_max_len,
-                    'type': con_dis_succedent_type
-                }
-            )
-
-            rulelist = clm.rulelist
-            for rule in rulelist:
-                rule['ruletext'] = clm.get_ruletext(rule['rule_id'])
-
-            # Save updated data to db
-            serializer.save(clm=clm)
-
-            return Response(None, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        except NotFound as e:
+            return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
 
 
 class FourFtResultRuleDetailView(RetrieveAPIView):
