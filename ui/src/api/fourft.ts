@@ -1,4 +1,10 @@
-import { QueryClient, queryOptions, useMutation } from '@tanstack/react-query';
+import {
+  QueryClient,
+  queryOptions,
+  useMutation,
+  useQuery,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { baseApiUrl } from '@/utils/constants.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 import { z } from 'zod';
@@ -13,6 +19,26 @@ const fourFtDetailApiUrl = (id: string) => `${fourFtBaseApiUrl}/${id}`;
 const fourFtPutApiUrl = (id: string) => `${fourFtBaseApiUrl}/${id}/`;
 
 const FOURFT_BASE_QUERY_KEY = 'fourft';
+
+export interface FourFtFilters {
+  name?: string;
+  dataset_name?: string;
+  ordering?: string;
+  [key: string]: string | undefined;
+}
+
+export const useGetFourFts = (filters?: FourFtFilters, suspense?: boolean) => {
+  const sessionState = useSessionTokens();
+  const queryParams = {
+    queryKey: [FOURFT_BASE_QUERY_KEY, filters],
+    queryFn: () => fetchFourFtResults(sessionState.tokens.accessToken, filters),
+  };
+
+  if (suspense) {
+    return useSuspenseQuery(queryParams);
+  }
+  return useQuery(queryParams);
+};
 
 export const useCreateFourFt = (navigate: UseNavigateResult<string>) => {
   const sessionState = useSessionTokens();
@@ -85,6 +111,48 @@ export const useFullUpdateFourFt = (id: string, queryClient: QueryClient) => {
     onSuccess: async () => {},
     onError: (error) => {
       console.error(error);
+      throw error;
+    },
+  });
+};
+
+/**
+ * Hook for deleting a FourFtResult
+ * @param queryClient QueryClient for invalidating queries after successful deletion
+ * @param navigate Optional navigate function to redirect after deletion
+ * @returns Mutation for deleting a FourFtResult
+ */
+export const useDeleteFourFt = (queryClient: QueryClient, navigate?: UseNavigateResult<string>) => {
+  const sessionState = useSessionTokens();
+  const token = sessionState.tokens.accessToken;
+
+  return useMutation({
+    mutationFn: async (fourFtId: string) => {
+      const response = await authFetch(fourFtDetailApiUrl(fourFtId), {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 204) {
+        await queryClient.invalidateQueries({ queryKey: [FOURFT_BASE_QUERY_KEY] });
+        if (navigate) {
+          await navigate({ to: '/fourft' });
+        }
+        return true; // Success
+      } else if (response.status === 403) {
+        throw new Error('You do not have permission to delete this result.');
+      } else if (response.status === 404) {
+        throw new Error('Result not found.');
+      } else {
+        throw new Error('An unexpected error occurred.');
+      }
+    },
+    onSuccess: () => {},
+    onError: (error) => {
+      console.error('Error deleting four-ft result:', error);
       throw error;
     },
   });
@@ -198,8 +266,26 @@ type FourFtResultApi = z.infer<typeof fourFtResultSchema>;
 
 export type FourFtResult = Omit<FourFtResultApi, 'id'> & { id: string };
 
-const fetchFourFtResults = async (token: string): Promise<FourFtResult[]> => {
-  const fetchResult = await authFetch(fourFtBaseApiUrl, {
+const fetchFourFtResults = async (
+  token: string,
+  filters?: FourFtFilters
+): Promise<FourFtResult[]> => {
+  // Construct URL with query parameters
+  let url = fourFtBaseApiUrl;
+
+  if (filters) {
+    const params = new URLSearchParams();
+    if (filters.name) params.append('name', filters.name);
+    if (filters.dataset_name) params.append('dataset_name', filters.dataset_name);
+    if (filters.ordering) params.append('ordering', filters.ordering);
+
+    const queryString = params.toString();
+    if (queryString) {
+      url = `${url}?${queryString}`;
+    }
+  }
+
+  const fetchResult = await authFetch(url, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,

@@ -6,10 +6,37 @@ from django.utils import timezone
 
 # Create your models here.
 
+class StorageFile(models.Model):
+    """
+    Represents a file stored either in local storage or S3.
+    Used by Dataset and FourFtResult models to track their associated files.
+    """
+    LOCAL = 'local'
+    S3 = 's3'
+    
+    STORAGE_TYPE_CHOICES = [
+        (LOCAL, 'Local Storage'),
+        (S3, 'S3 Storage'),
+    ]
+    
+    file_path = models.CharField(max_length=512)
+    storage_type = models.CharField(max_length=10, choices=STORAGE_TYPE_CHOICES, default=S3)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.storage_type}:{self.file_path}"
+
+
 class Dataset(models.Model):
     name = models.CharField(max_length=32)
     delimiter = models.CharField(max_length=16, default=',')
-    s3_key = models.CharField(max_length=256)
+    storage_file = models.OneToOneField(
+        StorageFile, 
+        on_delete=models.CASCADE, 
+        null=False,
+        blank=False, 
+        related_name='dataset'
+    )
     rows_count = models.IntegerField(default=0)
     columns_count = models.IntegerField(default=0)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='datasets')
@@ -50,7 +77,13 @@ class FourFtResult(models.Model):
     )
     dataset_name = models.CharField(max_length=256, null=False, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='four_ft_results')
-    s3_key = models.CharField(max_length=256, blank=True, null=True)
+    storage_file = models.OneToOneField(
+        StorageFile, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='four_ft_result'
+    )
     rules_count = models.IntegerField(null=False)
     # parameters
     base = models.IntegerField(blank=True, null=True)

@@ -122,7 +122,16 @@ DATABASES = {
     }
 }
 
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# Storage settings
+USE_S3_STORAGE = env('USE_S3_STORAGE', default='true').lower() == 'true'
+
+# Configure storage based on USE_S3_STORAGE
+if USE_S3_STORAGE:
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+else:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = Path(BASE_DIR) / 'media'
 
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
@@ -132,6 +141,7 @@ AWS_STORAGE_BUCKET_NAME = env('AWS_BUCKET_NAME')
 GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID")
 GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET")
 GOOGLE_OAUTH_CALLBACK_URL = env("GOOGLE_OAUTH_CALLBACK_URL")
+BASE_URL=env('BASE_URL', default='http://localhost:8000')
 
 
 # Password validation

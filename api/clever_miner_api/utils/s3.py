@@ -57,7 +57,7 @@ def dataset_s3_upload(file):
     
     return s3_key
 
-def clm_s3_upload(clm: str, s3_key: str = None):
+def clm_s3_upload(clm, s3_key: str = None):
     if s3_key is None:  
         key = f'results/{generate_random_string(32)}'
     else:
@@ -89,7 +89,7 @@ def download_s3_file(s3_key, save_path):
     s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, s3_key, save_path)
 
 
-def dataset_s3_delete(s3_key):
+def object_s3_delete(s3_key):
     s3 = get_boto_s3_client()
 
     s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME,Key=s3_key)

@@ -2,10 +2,12 @@ from rest_framework import serializers
 
 from .dataset import DatasetSerializer
 from .user import UserSerializer
-from ..models import Dataset, FourFtResult, Cedent
+from ..models import Dataset, FourFtResult, Cedent, StorageFile
 
 from ..utils.clm_init import clm_init
-from ..utils.s3 import clm_s3_upload, create_presigned_url, download_s3_file, dataset_s3_delete
+from ..utils.s3 import clm_s3_upload, create_presigned_url, download_s3_file, object_s3_delete
+from .. import storage
+import json
 
 import re
 
@@ -79,12 +81,12 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         model = FourFtResult
         fields = "__all__"
         
-    def _process_s3_and_clm(self, clm, existing_s3_key=None):
+    def _process_clm(self, clm, existing_storage_file=None):
+        file_path = None
         """Helper method to process CLM object and upload to S3"""
-        s3_key = None
         if len(clm.rulelist) > 0:
-            s3_key = clm_s3_upload(clm, existing_s3_key)
-        return s3_key, len(clm.rulelist)
+            file_path = storage.upload_clm_file(clm, existing_storage_file)
+        return file_path, len(clm.rulelist)
         
     def _create_cedents(self, four_ft_result, antecedents, succedents):
         """Helper method to create cedent objects for antecedents and succedents"""
@@ -124,19 +126,28 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             dataset = Dataset.objects.get(id=dataset_id)
         except Dataset.DoesNotExist:
             raise serializers.ValidationError({"dataset_id": f"Dataset with id {dataset_id} not found."})
+        
 
         # Process S3 and CLM
-        s3_key, rules_count = self._process_s3_and_clm(clm)
-
+        file_path, rules_count = self._process_clm(clm)
+        
         # Update validated data with additional information
         validated_data.update({
-            's3_key': s3_key,
             'rules_count': rules_count,
-            'dataset_name': dataset.name
+            'dataset_name': dataset.name,
         })
-
+        
         # Create the FourFtResult instance with user
         four_ft_result = FourFtResult.objects.create(dataset=dataset, user=user, **validated_data)
+
+        # Create a StorageFile record
+        if file_path:
+            storage_file = StorageFile.objects.create(
+                file_path=file_path,
+                storage_type=storage.get_storage_type()
+            )
+            four_ft_result.storage_file = storage_file
+            four_ft_result.save()
 
         # Create cedents
         self._create_cedents(four_ft_result, antecedents, succedents)
@@ -152,11 +163,6 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         - Optionally re-run the cleverminer process if needed
         """
         clm = validated_data.pop('clm', None)
-
-        # Delete existing S3 object if it exists
-        current_s3_key = instance.s3_key
-        if current_s3_key is not None:
-            dataset_s3_delete(current_s3_key)
 
         # Extract related data from the validated data
         antecedents = validated_data.pop('antecedent', [])
@@ -180,14 +186,28 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
 
         # Create new cedents
         self._create_cedents(instance, antecedents, succedents)
-
-        # Process S3 and CLM
-        s3_key, rules_count = self._process_s3_and_clm(clm, instance.s3_key)
         
-        # Update instance with S3 key and rules count
-        instance.s3_key = s3_key
-        instance.rules_count = rules_count
+        if(instance.storage_file):
+            storage.delete_file(instance.storage_file)
 
+        # Process CLM and get the new file path (if any)
+        file_path, rules_count = self._process_clm(clm, instance.storage_file)
+        
+        # Update instance with rules count
+        instance.rules_count = rules_count
+        
+        # Update StorageFile record
+        if instance.storage_file:
+            instance.storage_file.file_path = file_path
+            instance.storage_file.storage_type = storage.get_storage_type()
+            instance.storage_file.save()
+        else:
+            storage_file = StorageFile.objects.create(
+                file_path=file_path,
+                storage_type=storage.get_storage_type()
+            )
+            instance.storage_file = storage_file
+        
         # Save updated instance
         instance.save()
 
@@ -216,11 +236,11 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         representation["antecedent"] = CedentSerializer(antecedents, many=True).data
         representation["succedent"] = CedentSerializer(succedents, many=True).data
 
-        s3_key = representation["s3_key"]
+        storage_file = instance.storage_file
 
         representation['rules'] = []
-        if is_detail_request and s3_key is not None:
-            clm = clm_init(s3_key)
+        if is_detail_request and storage_file is not None:
+            clm = clm_init(storage_file)
             rules = clm.result['rules']
             for rule in rules:
                 rule['rule_text'] = clm.get_ruletext(rule['rule_id']) 

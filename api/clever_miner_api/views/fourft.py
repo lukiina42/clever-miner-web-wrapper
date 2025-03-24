@@ -7,19 +7,27 @@ from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework_simplejwt.authentication import JWTAuthentication
 import io
 import base64
+from django.shortcuts import get_object_or_404
 
 from ..models import Dataset, FourFtResult
 from ..serializers.dataset import DatasetSerializer
 from ..serializers.fourft import FourFtMinerSerializer
+from ..utils.s3 import object_s3_delete
+from .. import storage
 
 import pandas as pd
 
 from ..serializers.rule import RuleDataSerializer
 from ..utils.clm_init import clm_init
 import matplotlib.pyplot as plt
+from drf_spectacular.utils import extend_schema
 
 
 class FourFtMinerView(APIView):
+    """
+    API view for handling the collection of FourFtResult resources.
+    Supports listing all results and creating new ones.
+    """
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
@@ -107,6 +115,12 @@ class FourFtMinerView(APIView):
         return clm
     
     def post(self, request, *args, **kwargs):
+        """
+        Create a new FourFtResult instance.
+        
+        Runs the data mining process using the specified dataset and parameters,
+        stores the results, and associates it with the current user.
+        """
         serializer = FourFtMinerSerializer(data=request.data)
         if serializer.is_valid():
             validated_data = serializer.validated_data
@@ -124,18 +138,78 @@ class FourFtMinerView(APIView):
             return Response({'id': result.id}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        responses={200: FourFtMinerSerializer(many=True)},
+        methods=["GET"],
+        parameters=[
+            {
+                "name": "name",
+                "type": "string",
+                "in": "query",
+                "description": "Filter results by name (contains)",
+                "required": False
+            },
+            {
+                "name": "dataset_name",
+                "type": "string",
+                "in": "query",
+                "description": "Filter results by dataset name (contains)",
+                "required": False
+            },
+            {
+                "name": "ordering",
+                "type": "string",
+                "in": "query",
+                "description": "Order results by field (created_at, -created_at, updated_at, -updated_at). Prefix with '-' for descending order.",
+                "required": False
+            }
+        ]
+    )
     def get(self, request, *args, **kwargs):
-        '''
-        List all the four ft results for the current user
-        '''
+        """
+        List all FourFtResult instances belonging to the current user.
+        
+        Returns a list of all mining results created by the authenticated user.
+        
+        Query Parameters:
+        - name: Filter results by name (contains)
+        - dataset_name: Filter results by dataset name (contains)
+        - ordering: Order results by field (created_at, -created_at, updated_at, -updated_at)
+          prefix with '-' for descending order
+        """
         # Filter results by the current user
         four_ft_results = FourFtResult.objects.filter(user=request.user)
+        
+        # Apply name filter if provided
+        name_filter = request.query_params.get('name', None)
+        if name_filter:
+            four_ft_results = four_ft_results.filter(name__icontains=name_filter)
+            
+        # Apply dataset name filter if provided
+        dataset_name_filter = request.query_params.get('dataset_name', None)
+        if dataset_name_filter:
+            four_ft_results = four_ft_results.filter(dataset_name__icontains=dataset_name_filter)
+        
+        # Apply ordering if provided
+        ordering = request.query_params.get('ordering', None)
+        if ordering:
+            # Ensure the ordering field is valid
+            valid_ordering_fields = ['created_at', '-created_at', 'updated_at', '-updated_at']
+            if ordering in valid_ordering_fields:
+                four_ft_results = four_ft_results.order_by(ordering)
+        else:
+            # Default ordering: most recent first
+            four_ft_results = four_ft_results.order_by('-created_at')
+        
         serializer = FourFtMinerSerializer(four_ft_results, many=True, context={"request": request})
         data = serializer.data
         return Response(data, status=status.HTTP_200_OK)
 
 
 class FourFtResultDetailView(APIView):
+    """
+    API endpoint for retrieving, updating, and deleting a specific FourFtResult.
+    """
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
@@ -150,10 +224,12 @@ class FourFtResultDetailView(APIView):
         except FourFtResult.DoesNotExist:
             raise NotFound(detail=f"FourFtResult with id {result_id} not found.")
     
-    def get(self, request, id, *args, **kwargs):
+    def get(self, request, id=None, four_ft_id=None):
+        result_id = id or four_ft_id
+        result = get_object_or_404(FourFtResult, id=result_id)
+        
         try:
-            instance = self._get_result_with_permission_check(id, request.user)
-            serializer = FourFtMinerSerializer(instance, context={"request": request})
+            serializer = FourFtMinerSerializer(result, context={"request": request})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except NotFound as e:
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
@@ -161,6 +237,11 @@ class FourFtResultDetailView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
 
     def put(self, request, id, *args, **kwargs):
+        """
+        Update a specific FourFtResult by ID.
+        
+        Re-runs the mining process with updated parameters and updates the stored result.
+        """
         try:
             # Get existing result with permission check
             instance = self._get_result_with_permission_check(id, request.user)
@@ -192,9 +273,25 @@ class FourFtResultDetailView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
         except PermissionDenied as e:
             return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
+            
+    def delete(self, request, id=None, four_ft_id=None):
+        result_id = id or four_ft_id
+        result = get_object_or_404(FourFtResult, id=result_id)
+        
+        # Delete the file from storage
+        if result.storage_file:
+            storage.delete_file(result.storage_file)
+            
+        
+        # Delete the result
+        result.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class FourFtResultRuleDetailView(RetrieveAPIView):
+    """
+    API view for retrieving specific rules from a FourFtResult.
+    """
     serializer_class = RuleDataSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -206,6 +303,8 @@ class FourFtResultRuleDetailView(RetrieveAPIView):
     def get_object(self):
         """
         Retrieve a specific FourFtResult by ID and ensure it has the given rule ID.
+        
+        Also generates a visual representation of the rule as a base64-encoded image.
         """
         queryset = self.get_queryset()
 
@@ -218,8 +317,10 @@ class FourFtResultRuleDetailView(RetrieveAPIView):
 
         if not obj:
             raise NotFound(f'FourFtResult with id ${four_ft_id} was not found.')
+        if not obj.storage_file:
+            raise NotFound(f'FourFtResult with id ${four_ft_id} does not contain rule ${rule_id}.')
 
-        clm = clm_init(obj.s3_key)
+        clm = clm_init(obj.storage_file)
         rules = clm.result['rules']
         if rule_id < 1 or rule_id > len(rules):
             raise NotFound(f'Rule with id {rule_id} was not found.')

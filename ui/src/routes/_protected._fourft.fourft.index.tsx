@@ -1,9 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 import SuspenseWrapper from '@/components/suspense/SuspenseWrapper.tsx';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { fourFtResultsQueryOptions } from '@/api/fourft.ts';
+import { FourFtFilters, useGetFourFts } from '@/api/fourft.ts';
 import FourFtList from '@/containers/4ftminer/fourFtTable/FourFtList.tsx';
-import useSessionTokens from '@/hook/useGetSession.ts';
+import { useState } from 'react';
 
 export const Route = createFileRoute('/_protected/_fourft/fourft/')({
   component: FourFtResultsSuspense,
@@ -18,11 +17,15 @@ function FourFtResultsSuspense() {
 }
 
 function FourFtResults() {
-  const sessionState = useSessionTokens();
+  const [filters, setFilters] = useState<FourFtFilters>({});
+  const fourFtResults = useGetFourFts(filters, true);
 
-  const fourFtResults = useSuspenseQuery(
-    fourFtResultsQueryOptions(sessionState.tokens.accessToken)
+  return (
+    <FourFtList
+      fourFtResults={fourFtResults.data || []}
+      filters={filters}
+      setFilters={setFilters}
+      isLoading={fourFtResults.isLoading || false}
+    />
   );
-
-  return <FourFtList fourFtResults={fourFtResults.data} />;
 }

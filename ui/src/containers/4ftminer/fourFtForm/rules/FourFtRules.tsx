@@ -28,8 +28,8 @@ export default function FourFtRules({ rules, fourFtResultId }: Props) {
       {rules?.length === 0 && <div className={'text-2xl'}>No rules found!</div>}
       {rules !== undefined && rules.length !== 0 && (
         <Table className="w-full">
-          <TableCaption className="caption-top text-left mb-2 mt-0 text-lg text-black">
-            A list of found rules
+          <TableCaption className="caption-top text-left mb-4 mt-0 text-lg text-black">
+            Amount of rules: {rules.length}
           </TableCaption>
           <TableHeader>
             <TableRow className="grid grid-cols-7 gap-4">
