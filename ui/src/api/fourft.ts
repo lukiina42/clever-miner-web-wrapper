@@ -235,9 +235,17 @@ export type FourFtResultDetail = Omit<FourFtResultDetailApi, 'id' | 'dataset'> &
 
 const fetchFourFtResult = async (
   fourFtResultId: string,
-  token: string
+  token: string,
+  ordering?: string
 ): Promise<FourFtResultDetail> => {
-  const fetchResult = await authFetch(fourFtDetailApiUrl(fourFtResultId), {
+  // Construct URL with query parameters
+  let url = fourFtDetailApiUrl(fourFtResultId);
+  
+  if (ordering) {
+    url = `${url}?ordering=${encodeURIComponent(ordering)}`;
+  }
+
+  const fetchResult = await authFetch(url, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
@@ -314,8 +322,29 @@ export const fourFtResultsQueryOptions = (token: string) =>
     queryFn: () => fetchFourFtResults(token),
   });
 
-export const fourFtResultQueryOptions = (fourFtResultId: string, token: string) =>
+export const fourFtResultQueryOptions = (
+  fourFtResultId: string, 
+  token: string, 
+  ordering?: string
+) =>
   queryOptions({
-    queryKey: [FOURFT_BASE_QUERY_KEY, fourFtResultId],
-    queryFn: () => fetchFourFtResult(fourFtResultId, token),
+    queryKey: [FOURFT_BASE_QUERY_KEY, fourFtResultId, ordering],
+    queryFn: () => fetchFourFtResult(fourFtResultId, token, ordering),
   });
+
+export const useGetFourFtResult = (
+  fourFtResultId: string, 
+  ordering?: string, 
+  suspense?: boolean
+) => {
+  const sessionState = useSessionTokens();
+  const queryParams = {
+    queryKey: [FOURFT_BASE_QUERY_KEY, fourFtResultId, ordering],
+    queryFn: () => fetchFourFtResult(fourFtResultId, sessionState.tokens.accessToken, ordering),
+  };
+
+  if (suspense) {
+    return useSuspenseQuery(queryParams);
+  }
+  return useQuery(queryParams);
+};

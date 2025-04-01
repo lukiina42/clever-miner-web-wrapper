@@ -5,8 +5,17 @@ import FourFtMinerUpdate from '@/containers/4ftminer/fourFtForm/FourFtMinerUpdat
 import SuspenseWrapper from '@/components/suspense/SuspenseWrapper.tsx';
 import useSessionTokens from '@/hook/useGetSession.ts';
 
+type FourFtDetailSearch = {
+  ordering: string;
+}
+
 export const Route = createFileRoute('/_protected/_fourft/fourft/$fourftId/')({
   component: FourFtDetailSuspense,
+  validateSearch: (search: Record<string, unknown>): FourFtDetailSearch => {
+  return {
+    ordering: (search.ordering as string) || '',
+  }
+},
 });
 
 function FourFtDetailSuspense() {
@@ -19,10 +28,11 @@ function FourFtDetailSuspense() {
 
 function FourFtDetail() {
   const { fourftId } = Route.useParams();
+  const { ordering } = Route.useSearch();
   const sessionState = useSessionTokens();
 
   const fourFtResult = useSuspenseQuery(
-    fourFtResultQueryOptions(fourftId, sessionState.tokens.accessToken)
+    fourFtResultQueryOptions(fourftId, sessionState.tokens.accessToken, ordering as string)
   );
 
   return <FourFtMinerUpdate data={fourFtResult.data} />;

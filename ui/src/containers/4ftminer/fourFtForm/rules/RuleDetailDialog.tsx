@@ -38,13 +38,13 @@ export default function RuleDetailDialog({ currentRuleId, closeDialog, fourFtRes
       <DialogContent>
         <DialogHeader>
           <DialogTitle className={'text-2xl flex justify-between items-center pr-8'}>
-            <div>Rule detail</div>
+            <div>Rule {currentRuleId} detail</div>
             <Link to={`/fourft/${fourFtResultId}/rules/${currentRuleId}`}>
               <ArrowTopRightOnSquareIcon className={'w-5 h-5'} />
             </Link>
           </DialogTitle>
-          <DialogDescription>
-            Here you can see the details of rule {currentRuleId}
+          <DialogDescription className={'text-lg'}>
+            {ruleData?.data?.rule?.rule_text}
           </DialogDescription>
         </DialogHeader>
         {isLoading ? (

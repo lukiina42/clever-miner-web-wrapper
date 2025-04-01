@@ -17,23 +17,26 @@ export default function RuleDetail({ data }: Props) {
     <div className={'flex flex-col gap-2 p-4'}>
       <div className={'flex justify-between'}>
         <div className={'flex flex-col gap-1'}>
-          <div className={'flex gap-2'}>
+          <div className={'mb-4'}>
+            {data?.rule?.rule_text}
+          </div>
+          <div className={'flex gap-2 text-sm'}>
             <div className={'font-bold w-28'}>Base:</div>
             <div>{ruleParams.base}</div>
           </div>
-          <div className={'flex gap-2'}>
+          <div className={'flex gap-2 text-sm'}>
             <div className={'font-bold w-28'}>Relative base:</div>
             <div>{numberToDecimalPlaces(ruleParams.rel_base, 6)}</div>
           </div>
-          <div className={'flex gap-2'}>
+          <div className={'flex gap-2 text-sm'}>
             <div className={'font-bold w-28'}>Confidence:</div>
             <div>{numberToDecimalPlaces(ruleParams.conf, 6)}</div>
           </div>
-          <div className={'flex gap-2'}>
+          <div className={'flex gap-2 text-sm'}>
             <div className={'font-bold w-28'}>AAD:</div>
             <div>{numberToDecimalPlaces(ruleParams.aad, 6)}</div>
           </div>
-          <div className={'flex gap-2'}>
+          <div className={'flex gap-2 text-sm'}>
             <div className={'font-bold w-28'}>BAD:</div>
             <div>{numberToDecimalPlaces(ruleParams.bad, 6)}</div>
           </div>

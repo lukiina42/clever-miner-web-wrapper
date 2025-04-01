@@ -9,7 +9,7 @@ type Props = {
 export default function RuleDetailDialogBase({ ruleParams, plot }: Props) {
   return (
     <div className={'flex flex-col gap-2'}>
-      <div className={'flex flex-col gap-1'}>
+      <div className={'flex flex-col gap-1 text-sm'}>
         <div className={'flex gap-2'}>
           <div className={'font-bold w-28'}>Base:</div>
           <div>{ruleParams.base}</div>

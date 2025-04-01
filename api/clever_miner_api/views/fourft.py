@@ -229,13 +229,39 @@ class FourFtResultDetailView(APIView):
         result = get_object_or_404(FourFtResult, id=result_id)
         
         try:
+            # Get ordering parameter from query params
+            ordering = request.query_params.get('ordering', None)
+
+            # Get serialized data
             serializer = FourFtMinerSerializer(result, context={"request": request})
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            data = serializer.data
+            
+            rules = data['rules']
+                
+            # Apply ordering if provided
+            if ordering and rules:
+                reverse = False
+                order_field = ordering
+                
+                # Check if it's a descending order
+                if ordering.startswith('-'):
+                    reverse = True
+                    order_field = ordering[1:]
+                    
+                # Validate the field exists in rules
+                if order_field in rules[0]['params']:
+                    data['rules'] = sorted(
+                        rules, 
+                        key=lambda rule: rule['params'][order_field],
+                        reverse=reverse
+                    )
+
+            return Response(data, status=status.HTTP_200_OK)
         except NotFound as e:
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
         except PermissionDenied as e:
             return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
-
+ 
     def put(self, request, id, *args, **kwargs):
         """
         Update a specific FourFtResult by ID.

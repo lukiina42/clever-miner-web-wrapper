@@ -99,7 +99,7 @@ export default function FourFtList({
           ) : (
             <Table className="w-full px-4 max-w-[80rem]">
               <TableCaption className="caption-top font-bold text-left mb-2 text-lg text-black">
-                A list of created procedures
+                A list of created tasks
               </TableCaption>
               <TableHeader>
                 <TableRow className="grid grid-cols-9 gap-4">
