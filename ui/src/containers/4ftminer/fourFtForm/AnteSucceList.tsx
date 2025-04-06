@@ -21,15 +21,16 @@ export default function AnteSucceList({
   datasetHeaderNames,
   title,
 }: Props) {
-  const schemaWatch: FourFtSchemaT = useWatch();
+  const schemaWatch = useWatch({ control }) as FourFtSchemaT;
 
-  const cedentsAll = schemaWatch[title];
+  const cedentsAll = schemaWatch?.[title] || [];
 
   const cedents = cedentsAll.filter((cedent) => cedent.isValid);
 
   return (
     <div className="w-full flex flex-col gap-1">
       {cedents.map(({ name, type, minLen, maxLen }, index) => (
+        // @ts-ignore
         <AddAnteSucceDialog
           title={title}
           append={append}

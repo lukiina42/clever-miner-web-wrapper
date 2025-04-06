@@ -1,0 +1,82 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    ports:
+      - '6000:5432'
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-2412}
+      POSTGRES_DB: ${DB_NAME:-postgres}
+      POSTGRES_USER: ${DB_USER:-apiserver}
+    volumes:
+      - ./api/.docker-data/postgres:/var/lib/postgresql/clever-miner
+    networks:
+      - app-network
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - '8000:8000'
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_NAME=${DB_NAME:-postgres}
+      - DATABASE_USER=${DB_USER:-apiserver}
+      - DATABASE_PASSWORD=${DB_PASSWORD:-2412}
+      - DATABASE_PORT=5432
+      - USE_S3_STORAGE=${USE_S3_STORAGE:-false}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - AWS_BUCKET_REGION=${AWS_BUCKET_REGION}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID}
+      - GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
+      - GOOGLE_OAUTH_CALLBACK_URL=${GOOGLE_OAUTH_CALLBACK_URL:-http://localhost:8000/clever-miner/auth/google/callback/}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - BASE_URL=${BASE_URL:-http://localhost:8000/clever-miner}
+    volumes:
+      - ./api:/app
+      - api_staticfiles:/app/staticfiles
+      - api_media:/app/media
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/clever-miner/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - app-network
+
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - '3000:80'
+    depends_on:
+      - api
+    environment:
+      - VITE_API_BASE_URL=${BASE_URL:-http://localhost:8000/clever-miner}
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  api_staticfiles:
+  api_media: 

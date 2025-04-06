@@ -167,3 +167,7 @@ cython_debug/
 api/clever_miner_api/cleverminer.py
 api/intermediate_results
 api/media
+api/staticfiles/
+
+# Docker data
+.docker-data/

@@ -1,11 +1,7 @@
 import { Label } from '@/components/ui/label.tsx';
 import FormErrorMessage from '@/components/form/FormErrorMessage.tsx';
 import { Combobox } from '@/components/form/Combobox.tsx';
-
-interface Value {
-  id: string;
-  name: string;
-}
+import { Value } from '@/type/combobox.ts';
 
 interface Props {
   options: Value[];

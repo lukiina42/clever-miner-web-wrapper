@@ -3,11 +3,7 @@ import FormErrorMessage from '@/components/form/FormErrorMessage.tsx';
 import { Control, FieldError, FieldValues } from 'react-hook-form';
 import { FormField, FormItem } from '@/components/ui/form.tsx';
 import { ComboboxHookForm } from './ComboboxHookForm';
-
-export interface Value {
-  id: string;
-  name: string;
-}
+import { Value } from '@/type/combobox.ts';
 
 interface Props {
   options: Value[];

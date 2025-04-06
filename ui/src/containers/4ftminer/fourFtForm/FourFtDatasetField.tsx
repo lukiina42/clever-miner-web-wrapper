@@ -3,10 +3,9 @@ import { ComboboxWrapper } from '@/components/form/ComboboxWrapper.tsx';
 import { FieldValues, UseFormSetValue } from 'react-hook-form';
 import { Dataset } from '@/api/dataset.ts';
 import { DatasetState } from '@/containers/4ftminer/fourFtForm/FourFtMinerUpdate.tsx';
-import { Value } from '@/components/form/ComboboxHookFormWrapper.tsx';
 import { anteSucceDefault } from '@/data/cedent.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
-
+import { Value } from '@/type/combobox.ts';
 interface Props<T extends FieldValues> {
   datasets: Dataset[];
   currentDataset: DatasetState;
@@ -41,7 +40,7 @@ export default function FourFtDatasetField({
           options={datasets}
           onValueChange={onDatasetChange}
           errorMessage={currentDataset.errorMessage}
-          value={currentDataset.value}
+          value={currentDataset.value as Value}
           disabled={datasetsLoading}
         />
       </div>

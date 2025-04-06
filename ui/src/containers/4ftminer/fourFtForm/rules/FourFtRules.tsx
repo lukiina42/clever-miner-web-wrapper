@@ -15,7 +15,7 @@ import { numberToDecimalPlaces } from '@/utils/helperFunction.ts';
 import { Button } from '@/components/ui/button.tsx';
 import { ArrowDown, ArrowUp, ArrowUpDownIcon } from 'lucide-react';
 import { Route as FourFtDetailRoute } from '@/routes/_protected._fourft.fourft.$fourftId.index';
-import {useNavigate} from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 interface Props {
   rules: Rule[] | undefined;
@@ -35,13 +35,15 @@ export default function FourFtRules({ rules, fourFtResultId }: Props) {
     // If already sorting by this field in ascending order, switch to descending
     if (ordering === field) {
       navigate({
-        search: {ordering: `-${field}`},
+        params: { fourftId: fourFtResultId },
+        search: (prev) => ({ ...prev, ordering: `-${field}` }),
       });
     }
     // Otherwise start sorting by this field in ascending order
     else {
       navigate({
-        search: {ordering: field},
+        params: { fourftId: fourFtResultId },
+        search: (prev) => ({ ...prev, ordering: field }),
       });
     }
   };

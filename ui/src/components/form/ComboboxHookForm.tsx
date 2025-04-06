@@ -12,11 +12,7 @@ import { cn } from '@/lib/utils.ts';
 import { useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loadingSpinner.tsx';
-
-interface Value {
-  id: string;
-  name: string;
-}
+import { Value } from '@/type/combobox.ts';
 
 interface Props {
   options: Value[];

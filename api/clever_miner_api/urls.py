@@ -5,6 +5,7 @@ from django.urls import path, include
 from .views.dataset import DatasetApiView, DatasetDetailView
 from .views.fourft import FourFtMinerView, FourFtResultDetailView, FourFtResultRuleDetailView
 from .views.auth import GoogleLoginView, GoogleCallbackView
+from .views.health import HealthCheckView
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
 urlpatterns = [
@@ -23,6 +24,9 @@ urlpatterns = [
     # JWT Token URLs
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    
+    # Health check endpoint
+    path('health/', HealthCheckView.as_view(), name='health_check'),
 ]
 
 # Serve media files in development

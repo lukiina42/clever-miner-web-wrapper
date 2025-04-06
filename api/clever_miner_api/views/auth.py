@@ -13,6 +13,7 @@ from dj_rest_auth.registration.views import SocialLoginView
 import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -34,14 +35,16 @@ class GoogleLoginView(APIView):
         # Exchange the authorization code for tokens
         token_url = 'https://oauth2.googleapis.com/token'
         redirect_uri = settings.GOOGLE_OAUTH_CALLBACK_URL
+        client_id = settings.GOOGLE_OAUTH_CLIENT_ID
+        client_secret = settings.GOOGLE_OAUTH_CLIENT_SECRET
         
         # Log the data we're sending to Google
         logger.info(f"Exchanging code for token with redirect_uri: {redirect_uri}")
         
         data = {
             'code': code,
-            'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
-            'client_secret': settings.GOOGLE_OAUTH_CLIENT_SECRET,
+            'client_id': client_id,
+            'client_secret': client_secret,
             'redirect_uri': redirect_uri,
             'grant_type': 'authorization_code'
         }
@@ -49,12 +52,19 @@ class GoogleLoginView(APIView):
         # Get tokens from Google
         try:
             token_response = requests.post(token_url, data=data)
+            
+            if not token_response.ok:
+                error_data = token_response.json() if token_response.headers.get('content-type', '').startswith('application/json') else {'error': 'unknown_error'}
+                logger.error(f"Error from Google: {error_data}")
+                return Response(error_data, status=token_response.status_code)
+                
             token_response.raise_for_status()  # Raise exception for 4XX/5XX responses
             tokens = token_response.json()
         except requests.exceptions.RequestException as e:
             error_detail = {}
             try:
-                error_detail = token_response.json()
+                if hasattr(e, 'response') and e.response is not None:
+                    error_detail = e.response.json()
             except:
                 pass
                 

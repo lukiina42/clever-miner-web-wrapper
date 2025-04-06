@@ -43,13 +43,29 @@ export const exchangeCodeForTokens = async (code: string): Promise<TokenResponse
     body: JSON.stringify({ code }),
   });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || 'Failed to exchange code for tokens');
-  }
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType?.includes('application/json');
+    
+    let responseData;
+    if (isJson) {
+      responseData = await response.json();
+    } 
 
-  const dataRaw = await response.json();
-  const data = tokenResponseSchema.parse(dataRaw);
+    if (!response.ok) {
+      console.error('Error response:', responseData);
+      const error = new Error(
+        responseData.error_description || 
+        responseData.detail || 
+        `Failed with status: ${response.status}`
+      );
+      // @ts-ignore
+      error.response = responseData;
+      // @ts-ignore
+      error.status = response.status;
+      throw error;
+    }
+
+  const data = tokenResponseSchema.parse(responseData);
 
   return {
     accessToken: data.access_token,
