@@ -12,19 +12,39 @@ type Props = {
   errors: FieldErrors<FourFtSchemaT>;
 };
 
-export default function SucceBaseParameters({ register, errors }: Props) {
+export default function CedentBaseSucceParameters({ register, errors }: Props) {
   return (
     <div className="flex flex-col gap-2">
+      <div className={'flex gap-1 items-center'}>
+        <span className={'text-sm font-bold'}>Cedent basic parameters</span>
+        <InfoIcon
+          textContent={
+            <a
+              target="_blank"
+              className="underline"
+              href="https://www.cleverminer.org/doc/index.html#literals-and-cedents"
+            >
+              Cedent attribute specification
+            </a>
+          }
+        />
+      </div>
       <div className="w-[300px] flex justify-between">
         <div className={'w-[145px]'}>
-          <Label htmlFor="succeMinLen">Min. amount</Label>
+          <div className="flex gap-1 items-center">
+            <Label htmlFor={`succeMinLen`}>Min. amount</Label>
+            <InfoIcon textContent={'Minimal number of literals in the cedent in the rule'} />
+          </div>
           <TextInputField
             {...register('succeMinLen')}
             errorMessage={errors?.succeMinLen?.message as string | undefined}
           />
         </div>
         <div className={'w-[145px]'}>
-          <Label htmlFor="succeMaxLen">Max. amount</Label>
+          <div className="flex gap-1 items-center">
+            <Label htmlFor={`succeMaxLen`}>Max. amount</Label>
+            <InfoIcon textContent={'Maximal number of literals in the cedent in the rule'} />
+          </div>
           <TextInputField
             {...register('succeMaxLen')}
             errorMessage={errors?.succeMaxLen?.message as string | undefined}
@@ -36,13 +56,7 @@ export default function SucceBaseParameters({ register, errors }: Props) {
           <Label htmlFor={`conDisSuccedentType`}>Cedent type</Label>
           <InfoIcon
             textContent={
-              <a
-                target="_blank"
-                className="underline"
-                href="https://www.cleverminer.org/doc/index.html#literals-and-cedents"
-              >
-                Cedent type specification
-              </a>
+              'How literals (attributes and values) are combined'
             }
           />
         </div>

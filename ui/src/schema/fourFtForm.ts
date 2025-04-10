@@ -47,7 +47,7 @@ export const fourftSchema = z
     if (validAntecedensCount === 0) {
       ctx.addIssue({
         code: 'custom',
-        message: 'At least one antecedent is required',
+        message: 'At least one literal is required',
         path: ['antecedent'],
       });
     }
@@ -56,7 +56,7 @@ export const fourftSchema = z
     if (validSuccedentsCount === 0) {
       ctx.addIssue({
         code: 'custom',
-        message: 'At least one succedent is required',
+        message: 'At least one literal is required',
         path: ['succedent'],
       });
     }
@@ -166,3 +166,18 @@ export const fillQuantifiers = (data: FourFtResultDetail) => {
   if (data.confidence) quantifiers.push('confidence');
   return quantifiers;
 };
+
+export const getQuantifierLabel = (quantifier: 'base' | 'aad' | 'relBase' | 'confidence')=> {
+  switch (quantifier){
+    case 'base':
+      return 'Base'
+    case 'aad':
+      return 'AAD'
+    case 'relBase':
+      return 'Relative base'
+    case 'confidence':
+      return 'Confidence'
+    default:
+      throw new Error(`Unknown quantifier: ${quantifier}`)
+  }
+}

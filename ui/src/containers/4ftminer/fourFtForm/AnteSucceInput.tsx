@@ -48,8 +48,8 @@ export default function AnteSucceInput({
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4">
         <ComboboxHookFormWrapper
-          optionName={`${fieldName} #${index + 1} name`}
-          label={`${capitalizeFirstLetter(fieldName)} #${index + 1} name`}
+          optionName={`literal #${index + 1} name`}
+          label={`Literal #${index + 1} name`}
           isLoading={loading}
           options={options}
           onValueChange={(value) => {
@@ -63,9 +63,7 @@ export default function AnteSucceInput({
         />
         <div className={'w-[300px]'}>
           <div className="flex gap-1 items-center">
-            <Label htmlFor={`${fieldName}.${index}.type`}>
-              {capitalizeFirstLetter(fieldName)} type
-            </Label>
+            <Label htmlFor={`${fieldName}.${index}.type`}>Literal type</Label>
             <InfoIcon
               textContent={
                 <a

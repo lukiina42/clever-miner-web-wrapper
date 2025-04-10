@@ -31,7 +31,7 @@ export const useGetFourFts = (filters?: FourFtFilters, suspense?: boolean) => {
   const sessionState = useSessionTokens();
   const queryParams = {
     queryKey: [FOURFT_BASE_QUERY_KEY, filters],
-    queryFn: () => fetchFourFtResults(sessionState.tokens.accessToken, filters),
+    queryFn: () => fetchFourFtResults(sessionState?.tokens?.accessToken ?? '', filters),
   };
 
   if (suspense) {
@@ -55,7 +55,7 @@ export const useCreateFourFt = (navigate: UseNavigateResult<string>) => {
         body: stringifiedData,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionState.tokens.accessToken}`,
+          Authorization: `Bearer ${sessionState?.tokens?.accessToken ?? ''}`,
         },
       });
       //todo error handling, error boundary
@@ -82,7 +82,7 @@ export const useCreateFourFt = (navigate: UseNavigateResult<string>) => {
 
 export const useFullUpdateFourFt = (id: string, queryClient: QueryClient) => {
   const sessionState = useSessionTokens();
-  const token = sessionState.tokens.accessToken;
+  const token = sessionState?.tokens?.accessToken ?? '';
 
   return useMutation({
     mutationFn: async (
@@ -124,7 +124,7 @@ export const useFullUpdateFourFt = (id: string, queryClient: QueryClient) => {
  */
 export const useDeleteFourFt = (queryClient: QueryClient, navigate?: UseNavigateResult<string>) => {
   const sessionState = useSessionTokens();
-  const token = sessionState.tokens.accessToken;
+  const token = sessionState?.tokens?.accessToken ?? '';
 
   return useMutation({
     mutationFn: async (fourFtId: string) => {
@@ -139,7 +139,10 @@ export const useDeleteFourFt = (queryClient: QueryClient, navigate?: UseNavigate
       if (response.status === 204) {
         await queryClient.invalidateQueries({ queryKey: [FOURFT_BASE_QUERY_KEY] });
         if (navigate) {
-          await navigate({ to: '/fourft' });
+          await navigate({
+            to: '/fourft',
+            search: { ordering: undefined, name: undefined, datasetName: undefined },
+          });
         }
         return true; // Success
       } else if (response.status === 403) {
@@ -240,7 +243,7 @@ const fetchFourFtResult = async (
 ): Promise<FourFtResultDetail> => {
   // Construct URL with query parameters
   let url = fourFtDetailApiUrl(fourFtResultId);
-  
+
   if (ordering) {
     url = `${url}?ordering=${encodeURIComponent(ordering)}`;
   }
@@ -323,8 +326,8 @@ export const fourFtResultsQueryOptions = (token: string) =>
   });
 
 export const fourFtResultQueryOptions = (
-  fourFtResultId: string, 
-  token: string, 
+  fourFtResultId: string,
+  token: string,
   ordering?: string
 ) =>
   queryOptions({
@@ -333,8 +336,8 @@ export const fourFtResultQueryOptions = (
   });
 
 export const useGetFourFtResult = (
-  fourFtResultId: string, 
-  ordering?: string, 
+  fourFtResultId: string,
+  ordering?: string,
   suspense?: boolean
 ) => {
   const sessionState = useSessionTokens();

@@ -12,19 +12,39 @@ type Props = {
   errors: FieldErrors<FourFtSchemaT>;
 };
 
-export default function SucceBaseParameters({ register, errors }: Props) {
+export default function CedentBaseAnteParameters({ register, errors }: Props) {
   return (
     <div className="flex flex-col gap-2">
+      <div className={'flex gap-1 items-center'}>
+        <span className={'text-sm font-bold'}>Cedent basic parameters</span>
+        <InfoIcon
+            textContent={
+              <a
+                  target="_blank"
+                  className="underline"
+                  href="https://www.cleverminer.org/doc/index.html#literals-and-cedents"
+              >
+                Cedent attribute specification
+              </a>
+            }
+        />
+      </div>
       <div className="w-[300px] flex justify-between">
         <div className={'w-[145px]'}>
-          <Label htmlFor="anteMinLen">Min. amount</Label>
+          <div className="flex gap-1 items-center">
+            <Label htmlFor={`anteMinLen`}>Min. amount</Label>
+            <InfoIcon textContent={'Minimal number of literals in the cedent in the rule'} />
+          </div>
           <TextInputField
             {...register('anteMinLen')}
             errorMessage={errors?.anteMinLen?.message as string | undefined}
           />
         </div>
         <div className={'w-[145px]'}>
-          <Label htmlFor="anteMaxLen">Max. amount</Label>
+          <div className="flex gap-1 items-center">
+            <Label htmlFor={`anteMaxLen`}>Max. amount</Label>
+            <InfoIcon textContent={'Maximal number of literals in the cedent in the rule'} />
+          </div>
           <TextInputField
             {...register('anteMaxLen')}
             errorMessage={errors?.anteMaxLen?.message as string | undefined}
@@ -34,17 +54,7 @@ export default function SucceBaseParameters({ register, errors }: Props) {
       <div className={'w-[300px]'}>
         <div className="flex gap-1 items-center">
           <Label htmlFor={`conDisAntecedentType`}>Cedent type</Label>
-          <InfoIcon
-            textContent={
-              <a
-                target="_blank"
-                className="underline"
-                href="https://www.cleverminer.org/doc/index.html#literals-and-cedents"
-              >
-                Cedent type specification
-              </a>
-            }
-          />
+          <InfoIcon textContent={'How literals (attributes and values) are combined'} />
         </div>
         <Selectbox {...register(`conDisAntecedentType`)} error={errors?.conDisAntecedentType}>
           {cedentConDisTypes.map((option, i) => {

@@ -27,10 +27,6 @@ export default function Login() {
             <span>Sign in with Google</span>
           </Button>
         </div>
-
-        <div className="mt-6 text-center text-xs text-gray-500">
-          <p>By signing in, you agree to our Terms of Service and Privacy Policy.</p>
-        </div>
       </div>
       <div className="mt-8 text-center text-sm text-gray-500">
         <p>CleverMiner - Data Mining Made Simple</p>

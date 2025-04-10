@@ -17,9 +17,7 @@ export default function RuleDetail({ data }: Props) {
     <div className={'flex flex-col gap-2 p-4'}>
       <div className={'flex justify-between'}>
         <div className={'flex flex-col gap-1'}>
-          <div className={'mb-4'}>
-            {data?.rule?.rule_text}
-          </div>
+          <div className={'mb-4'}>{data?.rule?.rule_text}</div>
           <div className={'flex gap-2 text-sm'}>
             <div className={'font-bold w-28'}>Base:</div>
             <div>{ruleParams.base}</div>

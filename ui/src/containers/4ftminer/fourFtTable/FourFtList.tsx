@@ -8,44 +8,47 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table.tsx';
-import { FourFtFilters, FourFtResult } from '@/api/fourft.ts';
-import { Link } from '@tanstack/react-router';
+import { FourFtResult } from '@/api/fourft.ts';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button.tsx';
-import { ArrowDownIcon, ArrowUpDown, ArrowUpIcon, SearchIcon } from 'lucide-react';
+import { SearchIcon } from 'lucide-react';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/solid';
 import { formatServerDate } from '@/utils/date.ts';
 import DeleteFourFtDialog from '@/containers/4ftminer/fourFtTable/DeleteFourFtDialog.tsx';
 import { Input } from '@/components/ui/input.tsx';
-import { Dispatch, SetStateAction } from 'react';
-import { debounce, FilterState, handleOrderingChange } from '@/utils/filters.ts';
+import { debounce } from '@/utils/filters.ts';
+import { Route as FourFtListRoute } from '@/routes/_protected._fourft.fourft.index';
+import getSortIcon from '@/components/ui/SortIcon.tsx';
 
 interface FourFtListProps {
   fourFtResults: FourFtResult[];
-  filters: FourFtFilters;
-  setFilters: Dispatch<SetStateAction<FourFtFilters>>;
   isLoading: boolean;
 }
 
-export default function FourFtList({
-  fourFtResults,
-  filters,
-  setFilters,
-  isLoading,
-}: FourFtListProps) {
+export default function FourFtList({ fourFtResults, isLoading }: FourFtListProps) {
+  const { ordering, name, datasetName } = FourFtListRoute.useSearch();
+  const navigate = useNavigate({ from: FourFtListRoute.fullPath });
+
   // Handle name filter with debounce
   const debouncedSetNameFilter = debounce((value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      name: value.trim() || undefined,
-    }));
+    navigate({
+      params: {},
+      search: (prev) => ({
+        ...prev,
+        name: value.trim() || undefined,
+      }),
+    });
   }, 500);
 
   // Handle dataset name filter with debounce
   const debouncedSetDatasetNameFilter = debounce((value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      dataset_name: value.trim() || undefined,
-    }));
+    navigate({
+      params: {},
+      search: (prev) => ({
+        ...prev,
+        datasetName: value.trim() || undefined,
+      }),
+    });
   }, 500);
 
   const handleNameFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,13 +59,19 @@ export default function FourFtList({
     debouncedSetDatasetNameFilter(e.target.value);
   };
 
-  function getSortIcon(field: string, filters: FilterState): React.ReactNode {
-    if (filters.ordering === field) {
-      return <ArrowUpIcon className="h-4 w-4 ml-1" />;
-    } else if (filters.ordering === `-${field}`) {
-      return <ArrowDownIcon className="h-4 w-4 ml-1" />;
-    } else {
-      return <ArrowUpDown className="h-4 w-4 ml-1 opacity-50" />;
+  function handleOrderingChange(field: string) {
+    if (ordering === field) {
+      navigate({
+        params: {},
+        search: (prev) => ({ ...prev, ordering: `-${field}` }),
+      });
+    }
+    // Otherwise start sorting by this field in ascending order
+    else {
+      navigate({
+        params: {},
+        search: (prev) => ({ ...prev, ordering: field }),
+      });
     }
   }
 
@@ -75,7 +84,7 @@ export default function FourFtList({
             <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Filter by procedure name..."
-              defaultValue={filters.name || ''}
+              defaultValue={name || ''}
               onChange={handleNameFilterChange}
               className="pl-10"
             />
@@ -84,7 +93,7 @@ export default function FourFtList({
             <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Filter by dataset name..."
-              defaultValue={filters.dataset_name || ''}
+              defaultValue={datasetName || ''}
               onChange={handleDatasetNameFilterChange}
               className="pl-10"
             />
@@ -108,20 +117,20 @@ export default function FourFtList({
                   <TableHead className="col-span-1">Name of dataset</TableHead>
                   <TableHead className="col-span-2">
                     <button
-                      onClick={() => handleOrderingChange('created_at', setFilters)}
+                      onClick={() => handleOrderingChange('created_at')}
                       className="flex items-center hover:text-black"
                     >
                       Created at
-                      {getSortIcon('created_at', filters)}
+                      {getSortIcon('created_at', ordering)}
                     </button>
                   </TableHead>
                   <TableHead className="col-span-2">
                     <button
-                      onClick={() => handleOrderingChange('updated_at', setFilters)}
+                      onClick={() => handleOrderingChange('updated_at')}
                       className="flex items-center hover:text-black"
                     >
                       Last updated at
-                      {getSortIcon('updated_at', filters)}
+                      {getSortIcon('updated_at', ordering)}
                     </button>
                   </TableHead>
                   <TableHead className="col-span-1 pl-6">Actions</TableHead>
@@ -132,7 +141,7 @@ export default function FourFtList({
                   <TableRow>
                     <TableCell colSpan={9} className="text-center py-10">
                       No results found.{' '}
-                      {filters.name || filters.dataset_name
+                      {name || datasetName
                         ? 'Try a different search term.'
                         : 'Create a new procedure to get started.'}
                     </TableCell>
@@ -157,7 +166,11 @@ export default function FourFtList({
                         </TableCell>
                         <TableCell className="col-span-1">
                           <div className="flex space-x-2">
-                            <Link to={`/fourft/${fourftResult.id}`}>
+                            <Link
+                              search={{ ordering: undefined }}
+                              to={`/fourft/$fourftId`}
+                              params={{ fourftId: fourftResult.id }}
+                            >
                               <Button variant="ghost" size="icon" title="View Result">
                                 <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                               </Button>

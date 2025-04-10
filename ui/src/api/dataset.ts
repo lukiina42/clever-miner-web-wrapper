@@ -1,6 +1,6 @@
 import { baseApiUrl } from '@/utils/constants.ts';
 import { z } from 'zod';
-import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import { QueryClient, useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { Dispatch, SetStateAction } from 'react';
 import useSessionTokens from '@/hook/useGetSession.ts';
 import { authFetch } from '@/utils/authUtils.ts';
@@ -69,13 +69,17 @@ const fetchDatasets = async (token: string, filters?: DatasetFilters): Promise<D
   });
 };
 
-export const useGetDatasets = (filters?: DatasetFilters) => {
+export const useGetDatasets = (filters?: DatasetFilters, suspense = false) => {
   const sessionState = useSessionTokens();
-
-  return useQuery<Dataset[], Error>({
+  const options = {
     queryKey: [...DATASETS_COLLECTION_QUERY_KEY, filters],
-    queryFn: () => fetchDatasets(sessionState.tokens.accessToken, filters),
-  });
+    queryFn: () => fetchDatasets(sessionState?.tokens?.accessToken ?? '', filters),
+  };
+
+  if (suspense) {
+    return useSuspenseQuery<Dataset[], Error>(options);
+  }
+  return useQuery<Dataset[], Error>(options);
 };
 
 interface CreateDatasetPayload {

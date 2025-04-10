@@ -43,27 +43,27 @@ export const exchangeCodeForTokens = async (code: string): Promise<TokenResponse
     body: JSON.stringify({ code }),
   });
 
-    const contentType = response.headers.get('content-type');
-    const isJson = contentType?.includes('application/json');
-    
-    let responseData;
-    if (isJson) {
-      responseData = await response.json();
-    } 
+  const contentType = response.headers.get('content-type');
+  const isJson = contentType?.includes('application/json');
 
-    if (!response.ok) {
-      console.error('Error response:', responseData);
-      const error = new Error(
-        responseData.error_description || 
-        responseData.detail || 
+  let responseData;
+  if (isJson) {
+    responseData = await response.json();
+  }
+
+  if (!response.ok) {
+    console.error('Error response:', responseData);
+    const error = new Error(
+      responseData.error_description ||
+        responseData.detail ||
         `Failed with status: ${response.status}`
-      );
-      // @ts-ignore
-      error.response = responseData;
-      // @ts-ignore
-      error.status = response.status;
-      throw error;
-    }
+    );
+    // @ts-ignore
+    error.response = responseData;
+    // @ts-ignore
+    error.status = response.status;
+    throw error;
+  }
 
   const data = tokenResponseSchema.parse(responseData);
 

@@ -15,8 +15,8 @@ import { Dataset } from '@/api/dataset.ts';
 import { DatasetState } from '@/containers/4ftminer/fourFtForm/FourFtMinerUpdate.tsx';
 import FourFtQuantifiers from '@/containers/4ftminer/fourFtForm/FourFtQuantifiers.tsx';
 import FourFtDatasetField from '@/containers/4ftminer/fourFtForm/FourFtDatasetField.tsx';
-import Antecedents from '@/containers/4ftminer/fourFtForm/Antecedents.tsx';
-import Succedents from '@/containers/4ftminer/fourFtForm/Succedents.tsx';
+import Antecedent from '@/containers/4ftminer/fourFtForm/Antecedent.tsx';
+import Succedent from '@/containers/4ftminer/fourFtForm/Succedent.tsx';
 import { FourFtSchemaT, QuantifierField } from '@/schema/fourFtForm.ts';
 import { Label } from '@/components/ui/label.tsx';
 import { InfoIcon } from '@/components/ui/InfoIcon.tsx';
@@ -92,7 +92,7 @@ export default function FourFtForm({
   return (
     <div className={'h-full w-full pt-4 border-gray-200'}>
       <form className={'px-4 flex flex-col items-start w-full'} onSubmit={onSubmitCheck}>
-        <div className={'flex gap-4 items-center'}>
+        <div className={'flex flex-col md:gap-4 mt-8 md:mt-0 items-center md:flex-row justify-center gap-2'}>
           <FourFtDatasetField
             datasets={datasets}
             currentDataset={currentDataset}
@@ -113,10 +113,10 @@ export default function FourFtForm({
         </div>
         <div
           className={
-            'pt-8 flex flex-col md:flex-row w-full items-center md:justify-center md:items-start gap-12 md:gap-8 lg:gap-12 xl:gap-24'
+            'pt-8 flex flex-col lg:flex-row w-full items-center lg:justify-center lg:items-start gap-12 lg:gap-12 xl:gap-24'
           }
         >
-          <Antecedents
+          <Antecedent
             errors={errors}
             register={register}
             clearErrors={clearErrors}
@@ -134,7 +134,7 @@ export default function FourFtForm({
             removeQuantifier={removeQuantifier}
             quantifierMenuOptions={quantifierOptions}
           />
-          <Succedents
+          <Succedent
             errors={errors}
             register={register}
             clearErrors={clearErrors}

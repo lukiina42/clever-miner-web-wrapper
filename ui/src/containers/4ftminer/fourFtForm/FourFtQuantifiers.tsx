@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/dropdown-menu.tsx';
 import { allQuantifierFields } from '@/data/quantifier.ts';
 import { capitalizeFirstLetter } from '@/utils/helperFunction.ts';
-import { FourFtSchemaT, QuantifierField } from '@/schema/fourFtForm.ts';
+import {FourFtSchemaT, getQuantifierLabel, QuantifierField} from '@/schema/fourFtForm.ts';
+import {InfoIcon} from "@/components/ui/InfoIcon.tsx";
 
 interface Props<T extends FieldValues> {
   register: UseFormRegister<T>;
@@ -33,14 +34,27 @@ export default function FourFtQuantifiers({
   );
 
   return (
-    <div className="flex flex-col gap-2 items-start">
-      <div className={'text-lg font-bold self-start'}>Configure quantifiers</div>
-      <div className="flex flex-col gap-6 items-center">
+    <div className="flex flex-col gap-2 items-start justify-center">
+      <div className={'flex gap-1 items-center'}>
+        <div className={'text-lg font-bold self-start'}>Configure quantifiers</div>
+        <InfoIcon
+            textContent={
+              <a
+                  target="_blank"
+                  className="underline"
+                  href="https://www.cleverminer.org/doc/index.html#quantifiers-available"
+              >
+                Information about quantifiers
+              </a>
+            }
+        />
+      </div>
+      <div className="flex flex-col gap-6 items-center self-center">
         <div className={'flex flex-col gap-5'}>
           {quantifierItems.map((option) => (
             <div key={option} className={'w-64'}>
               <div className={'flex justify-between w-full'}>
-                <Label htmlFor={option}>{capitalizeFirstLetter(option)}</Label>
+                <Label htmlFor={option}>{getQuantifierLabel(option)}</Label>
                 <div
                   onClick={() => removeQuantifier(option)}
                   className="w-4 h-4 mb-0.5 flex items-center justify-center rounded-full bg-red-500 text-white cursor-pointer"
@@ -70,7 +84,7 @@ export default function FourFtQuantifiers({
                   key={option}
                   onClick={() => addQuantifier(option)}
                 >
-                  {option}
+                  {getQuantifierLabel(option)}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>

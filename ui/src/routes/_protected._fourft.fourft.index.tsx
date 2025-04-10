@@ -1,11 +1,23 @@
 import { createFileRoute } from '@tanstack/react-router';
 import SuspenseWrapper from '@/components/suspense/SuspenseWrapper.tsx';
-import { FourFtFilters, useGetFourFts } from '@/api/fourft.ts';
+import { useGetFourFts } from '@/api/fourft.ts';
 import FourFtList from '@/containers/4ftminer/fourFtTable/FourFtList.tsx';
-import { useState } from 'react';
+
+type FourFtListSearch = {
+  ordering: string | undefined;
+  name: string | undefined;
+  datasetName: string | undefined;
+};
 
 export const Route = createFileRoute('/_protected/_fourft/fourft/')({
   component: FourFtResultsSuspense,
+  validateSearch: (search: Record<string, unknown>): FourFtListSearch => {
+    return {
+      ordering: (search.ordering as string) || undefined,
+      name: (search.name as string) || undefined,
+      datasetName: (search.datasetName as string) || undefined,
+    };
+  },
 });
 
 function FourFtResultsSuspense() {
@@ -17,14 +29,18 @@ function FourFtResultsSuspense() {
 }
 
 function FourFtResults() {
-  const [filters, setFilters] = useState<FourFtFilters>({});
-  const fourFtResults = useGetFourFts(filters, true);
+  const filters = Route.useSearch();
+  const fourFtResults = useGetFourFts(
+    {
+      ...filters,
+      dataset_name: filters.datasetName,
+    },
+    true
+  );
 
   return (
     <FourFtList
       fourFtResults={fourFtResults.data || []}
-      filters={filters}
-      setFilters={setFilters}
       isLoading={fourFtResults.isLoading || false}
     />
   );

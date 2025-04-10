@@ -22,10 +22,9 @@ export default function OauthCallback() {
       console.error('Authentication error:', err);
       const errorMessage = err?.message || 'Unknown error';
       setErrorDetails(
-        typeof err.response === 'object' ? 
-          JSON.stringify(err.response, null, 2) : errorMessage
+        typeof err.response === 'object' ? JSON.stringify(err.response, null, 2) : errorMessage
       );
-    }
+    },
   });
 
   useEffect(() => {

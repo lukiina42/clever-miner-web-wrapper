@@ -1,3 +1,4 @@
+import AnteBaseParameters from '@/containers/4ftminer/fourFtForm/CedentBaseAnteParameters.tsx';
 import {
   Control,
   FieldErrors,
@@ -11,10 +12,9 @@ import {
 import { DatasetState } from '@/containers/4ftminer/fourFtForm/FourFtMinerUpdate.tsx';
 import { DatasetHeaderName } from '@/containers/4ftminer/fourFtForm/FourFtForm.tsx';
 import AddAnteSucceDialog from '@/containers/4ftminer/fourFtForm/AddAnteSucceDialog.tsx';
-import AnteSucceList from '@/containers/4ftminer/fourFtForm/AnteSucceList.tsx';
+import CedentLiteralList from '@/containers/4ftminer/fourFtForm/CedentLiteralList.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { displayNotification } from '@/utils/displayNotification.ts';
-import SucceBaseParameters from '@/containers/4ftminer/fourFtForm/SucceBaseParameters.tsx';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
 interface Props<T extends FieldValues> {
@@ -29,7 +29,7 @@ interface Props<T extends FieldValues> {
   trigger: UseFormTrigger<T>;
 }
 
-export default function Succedents({
+export default function Antecedent({
   register,
   errors,
   currentDataset,
@@ -41,11 +41,11 @@ export default function Succedents({
   datasetHeaderNames,
 }: Props<FourFtSchemaT>) {
   const {
-    fields: succedentFields,
-    append: appendSuccedent,
-    remove: removeSuccedent,
+    fields: antecedentFields,
+    append: appendAntecedent,
+    remove: removeAntecedent,
   } = useFieldArray({
-    name: 'succedent',
+    name: 'antecedent',
     control,
   });
 
@@ -55,17 +55,17 @@ export default function Succedents({
     if (disabledAdding) displayNotification('Choose a dataset first', 'info');
   };
 
-  const errorMessage = errors.succedent?.message ?? errors.succedent?.root?.message ?? '';
+  const errorMessage = errors.antecedent?.message ?? errors.antecedent?.root?.message ?? '';
 
   return (
     <div className={'flex flex-col gap-2'}>
-      <div className={'text-lg font-bold'}>Configure succedents</div>
+      <div className={'text-lg font-bold'}>Configure antecedent</div>
       <div className="flex flex-col gap-6 items-center w-fit">
-        <SucceBaseParameters register={register} errors={errors} />
-        <AnteSucceList
-          remove={removeSuccedent}
-          title={'succedent'}
-          append={appendSuccedent}
+        <AnteBaseParameters register={register} errors={errors} />
+        <CedentLiteralList
+          remove={removeAntecedent}
+          title={'antecedent'}
+          append={appendAntecedent}
           errors={errors}
           register={register}
           clearErrors={clearErrors}
@@ -75,11 +75,11 @@ export default function Succedents({
           datasetsLoading={datasetsLoading}
           datasetHeaderNames={datasetHeaderNames}
           currentDataset={currentDataset}
-          fieldLength={succedentFields.length}
+          fieldLength={antecedentFields.length}
         />
         <AddAnteSucceDialog
-          title={'succedent'}
-          append={appendSuccedent}
+          title={'antecedent'}
+          append={appendAntecedent}
           errors={errors}
           register={register}
           clearErrors={clearErrors}
@@ -90,7 +90,7 @@ export default function Succedents({
           datasetsLoading={datasetsLoading}
           datasetHeaderNames={datasetHeaderNames}
           currentDataset={currentDataset}
-          fieldLength={succedentFields.length}
+          fieldLength={antecedentFields.length}
         >
           <div className={'flex flex-col gap-2 items-center'}>
             <Button
@@ -98,7 +98,7 @@ export default function Succedents({
               type="button"
               className="cursor-pointer bg-black hover:bg-gray-800 w-40"
             >
-              <b>+</b> Add succedent
+              <b>+</b> Add literal
             </Button>
             {errorMessage !== '' && (
               <div className={'text-xs font-medium text-red-500'}>{errorMessage}</div>

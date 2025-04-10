@@ -22,7 +22,7 @@ function RuleDetailPage() {
   const session = useGetSession();
 
   const ruleDetail = useSuspenseQuery(
-    ruleQueryOptions(fourftId, ruleId, session?.tokens?.accessToken)
+    ruleQueryOptions(fourftId, parseInt(ruleId), session?.tokens?.accessToken ?? '')
   );
 
   return <RuleDetail data={ruleDetail.data} />;

@@ -7,7 +7,7 @@ type Props = {
   remove: UseFieldArrayRemove;
 } & Omit<AnteSucceInputProps<FourFtSchemaT>, 'children' | 'isUpdate'>;
 
-export default function AnteSucceList({
+export default function CedentLiteralList({
   remove,
   append,
   register,
@@ -29,6 +29,7 @@ export default function AnteSucceList({
 
   return (
     <div className="w-full flex flex-col gap-1">
+      {cedents.length > 0 && <span className={'text-sm font-bold'}>Literals</span>}
       {cedents.map(({ name, type, minLen, maxLen }, index) => (
         // @ts-ignore
         <AddAnteSucceDialog
