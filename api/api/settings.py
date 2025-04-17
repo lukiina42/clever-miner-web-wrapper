@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'clever_miner_api',
+    'clever_miner_api.apps.CleverMinerApiConfig',
     'rest_framework',
     'drf_spectacular',
     'django.contrib.sites',

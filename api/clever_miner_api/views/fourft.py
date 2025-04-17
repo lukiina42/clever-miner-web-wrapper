@@ -394,18 +394,29 @@ class FourFtResultRuleDetailView(RetrieveAPIView):
         
         rule['rule_text'] = clm.get_ruletext(rule_id)
         
-        # Draw the rule but don't show it
-        clm.draw_rule(rule_id, False)
+        # Initialize image_base64 to None
+        image_base64 = None
         
-        # Save the plot to a bytes buffer
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        image_base64 = base64.b64encode(buf.getvalue()).decode()
-        plt.close()  # Clean up the plot
-
-        # Return both the rule data and the plot image
-        return {
-            'rule': rule,
-            'plot': f"data:image/png;base64,{image_base64}"
-        }
+        try:
+            # Draw the rule but don't show it
+            clm.draw_rule(rule_id, False)
+            
+            # Save the plot to a bytes buffer
+            buf = io.BytesIO()
+            plt.savefig(buf, format='png')
+            buf.seek(0)
+            image_base64 = base64.b64encode(buf.getvalue()).decode()
+            plt.close()  # Clean up the plot
+        except Exception as e:
+            # Log the error but don't fail the request
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error generating plot for rule {rule_id}: {str(e)}")
+            plt.close('all')  # Make sure to clean up any matplotlib resources
+        
+        # Return the rule data and the plot image (if generated)
+        result = {'rule': rule}
+        if image_base64:
+            result['plot'] = f"data:image/png;base64,{image_base64}"
+        
+        return result
