@@ -18,15 +18,15 @@ export default function CedentBaseAnteParameters({ register, errors }: Props) {
       <div className={'flex gap-1 items-center'}>
         <span className={'text-sm font-bold'}>Cedent basic parameters</span>
         <InfoIcon
-            textContent={
-              <a
-                  target="_blank"
-                  className="underline"
-                  href="https://www.cleverminer.org/doc/index.html#literals-and-cedents"
-              >
-                Cedent attribute specification
-              </a>
-            }
+          textContent={
+            <a
+              target="_blank"
+              className="underline"
+              href="https://www.cleverminer.org/doc/index.html#literals-and-cedents"
+            >
+              Cedent attribute specification
+            </a>
+          }
         />
       </div>
       <div className="w-[300px] flex justify-between">

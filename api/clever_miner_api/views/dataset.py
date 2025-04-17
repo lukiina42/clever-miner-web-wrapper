@@ -9,6 +9,7 @@ from ..models import Dataset, FourFtResult
 from ..serializers.dataset import DatasetSerializer
 from .. import storage
 from ..storage import delete_file
+from ..services import DatasetService
 
 
 class DatasetApiView(APIView):
@@ -69,24 +70,16 @@ class DatasetApiView(APIView):
         - ordering: Order datasets by field (created_at, -created_at, updated_at, -updated_at)
           prefix with '-' for descending order
         """
-        # Filter datasets by the current user
-        datasets = Dataset.objects.filter(user=request.user)
-        
-        # Apply name filter if provided
+        # Get filter parameters
         name_filter = request.query_params.get('name', None)
-        if name_filter:
-            datasets = datasets.filter(name__icontains=name_filter)
-        
-        # Apply ordering if provided
         ordering = request.query_params.get('ordering', None)
-        if ordering:
-            # Ensure the ordering field is valid
-            valid_ordering_fields = ['created_at', '-created_at', 'updated_at', '-updated_at']
-            if ordering in valid_ordering_fields:
-                datasets = datasets.order_by(ordering)
-        else:
-            # Default ordering: most recent first
-            datasets = datasets.order_by('-created_at')
+        
+        # Get filtered datasets
+        datasets = DatasetService.filter_datasets(
+            user=request.user,
+            name=name_filter,
+            ordering=ordering
+        )
             
         serializer = DatasetSerializer(datasets, many=True)
         data = serializer.data
@@ -100,17 +93,6 @@ class DatasetDetailView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
-    @staticmethod
-    def _get_dataset_with_permission_check(dataset_id, user):
-        """Helper method to get a dataset and check user permissions"""
-        try:
-            dataset = Dataset.objects.get(id=dataset_id)
-            if dataset.user and dataset.user != user:
-                raise PermissionDenied("You do not have permission to access this dataset")
-            return dataset
-        except Dataset.DoesNotExist:
-            raise NotFound(detail=f"Dataset with id {dataset_id} not found.")
-    
     def get(self, request, id, *args, **kwargs):
         """
         Retrieve a specific dataset by ID.
@@ -118,7 +100,7 @@ class DatasetDetailView(APIView):
         Returns detailed information about a dataset, including its metadata and download URL.
         """
         try:
-            dataset = self._get_dataset_with_permission_check(id, request.user)
+            dataset = DatasetService.get_dataset_with_permission_check(id, request.user)
             serializer = DatasetSerializer(dataset)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except NotFound as e:
@@ -137,22 +119,19 @@ class DatasetDetailView(APIView):
         Will fail if the dataset is used by any existing mining results.
         """
         try:
-            dataset = self._get_dataset_with_permission_check(id, request.user)
+            # Get dataset with permission check
+            dataset = DatasetService.get_dataset_with_permission_check(id, request.user)
             
             # Check if dataset is used by any FourFtResult
-            related_results = FourFtResult.objects.filter(dataset=dataset)
-            # TODO verify this should work like that, it could be cascade delete
-            if related_results.exists():
+            if DatasetService.has_related_results(dataset):
                 return Response(
                     {"error": "Cannot delete dataset because it is used by existing results. Delete the results first."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-    
-            storage.delete_file(dataset.storage_file)
+            # Delete storage file and dataset
+            DatasetService.delete_dataset(dataset)
             
-            # Delete the dataset
-            dataset.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
             
         except NotFound as e:

@@ -11,8 +11,8 @@ import {
 } from '@/components/ui/dropdown-menu.tsx';
 import { allQuantifierFields } from '@/data/quantifier.ts';
 import { capitalizeFirstLetter } from '@/utils/helperFunction.ts';
-import {FourFtSchemaT, getQuantifierLabel, QuantifierField} from '@/schema/fourFtForm.ts';
-import {InfoIcon} from "@/components/ui/InfoIcon.tsx";
+import { FourFtSchemaT, getQuantifierLabel, QuantifierField } from '@/schema/fourFtForm.ts';
+import { InfoIcon } from '@/components/ui/InfoIcon.tsx';
 
 interface Props<T extends FieldValues> {
   register: UseFormRegister<T>;
@@ -38,15 +38,15 @@ export default function FourFtQuantifiers({
       <div className={'flex gap-1 items-center'}>
         <div className={'text-lg font-bold self-start'}>Configure quantifiers</div>
         <InfoIcon
-            textContent={
-              <a
-                  target="_blank"
-                  className="underline"
-                  href="https://www.cleverminer.org/doc/index.html#quantifiers-available"
-              >
-                Information about quantifiers
-              </a>
-            }
+          textContent={
+            <a
+              target="_blank"
+              className="underline"
+              href="https://www.cleverminer.org/doc/index.html#quantifiers-available"
+            >
+              Information about quantifiers
+            </a>
+          }
         />
       </div>
       <div className="flex flex-col gap-6 items-center self-center">

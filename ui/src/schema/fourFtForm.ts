@@ -41,9 +41,12 @@ export const fourftSchema = z
     conDisSuccedentType: z.nativeEnum(CedentConDisType, {
       invalid_type_error: 'Please choose an option',
     }),
-    conDisConditionType: z.nativeEnum(CedentConDisType, {
-      invalid_type_error: 'Please choose an option',
-    }).nullable().optional(),
+    conDisConditionType: z
+      .nativeEnum(CedentConDisType, {
+        invalid_type_error: 'Please choose an option',
+      })
+      .nullable()
+      .optional(),
     antecedent: z.array(cedentZodObject),
     succedent: z.array(cedentZodObject),
     condition: z.array(cedentZodObject).optional(),
@@ -166,15 +169,16 @@ export const getValuesFromApi = (data: FourFtResultDetail): FourFtSchemaT => {
       }),
       anteSucceDefault,
     ],
-    condition: data.condition ? 
-      data.condition.map((cedent) => ({
-        name: cedent.name,
-        id: cedent.id.toString(),
-        minLen: cedent.min_len.toString(),
-        maxLen: cedent.max_len.toString(),
-        type: cedent.type,
-        isValid: true,
-      })) : [],
+    condition: data.condition
+      ? data.condition.map((cedent) => ({
+          name: cedent.name,
+          id: cedent.id.toString(),
+          minLen: cedent.min_len.toString(),
+          maxLen: cedent.max_len.toString(),
+          type: cedent.type,
+          isValid: true,
+        }))
+      : [],
   } satisfies FourFtSchemaT;
 };
 
@@ -189,17 +193,17 @@ export const fillQuantifiers = (data: FourFtResultDetail) => {
   return quantifiers;
 };
 
-export const getQuantifierLabel = (quantifier: 'base' | 'aad' | 'relBase' | 'confidence')=> {
-  switch (quantifier){
+export const getQuantifierLabel = (quantifier: 'base' | 'aad' | 'relBase' | 'confidence') => {
+  switch (quantifier) {
     case 'base':
-      return 'Base'
+      return 'Base';
     case 'aad':
-      return 'AAD'
+      return 'AAD';
     case 'relBase':
-      return 'Relative base'
+      return 'Relative base';
     case 'confidence':
-      return 'Confidence'
+      return 'Confidence';
     default:
-      throw new Error(`Unknown quantifier: ${quantifier}`)
+      throw new Error(`Unknown quantifier: ${quantifier}`);
   }
-}
+};

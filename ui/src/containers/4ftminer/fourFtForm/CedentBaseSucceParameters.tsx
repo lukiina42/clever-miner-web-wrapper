@@ -54,11 +54,7 @@ export default function CedentBaseSucceParameters({ register, errors }: Props) {
       <div className={'w-[300px]'}>
         <div className="flex gap-1 items-center">
           <Label htmlFor={`conDisSuccedentType`}>Cedent type</Label>
-          <InfoIcon
-            textContent={
-              'How literals (attributes and values) are combined'
-            }
-          />
+          <InfoIcon textContent={'How literals (attributes and values) are combined'} />
         </div>
         <Selectbox {...register(`conDisSuccedentType`)} error={errors?.conDisSuccedentType}>
           {cedentConDisTypes.map((option, i) => {

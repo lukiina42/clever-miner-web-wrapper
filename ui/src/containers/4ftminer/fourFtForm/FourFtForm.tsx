@@ -72,7 +72,7 @@ export default function FourFtForm({
   addAnteSucceToEnd,
 }: Props<FourFtSchemaT> & { handleSubmit: UseFormHandleSubmit<FourFtSchemaT> }) {
   const [showCondition, setShowCondition] = useState(false);
-  
+
   const datasetHeaderNames: DatasetHeaderName[] = useMemo(() => {
     const headerNames = currentDataset?.value?.header_names ?? [];
     return headerNames.map((headerName) => ({ id: headerName, name: headerName }));
@@ -85,7 +85,7 @@ export default function FourFtForm({
 
   const addCondition = () => {
     if (conditionFields.length === 0) {
-      appendCondition({...anteSucceDefault});
+      appendCondition({ ...anteSucceDefault });
     }
     setShowCondition(true);
   };
@@ -103,12 +103,12 @@ export default function FourFtForm({
 
     setValue('antecedent', validAntecedents, { shouldValidate: true });
     setValue('succedent', validSuccedents, { shouldValidate: true });
-    
+
     // Only set condition if we have valid conditions
     if (validConditions.length > 0) {
       setValue('condition', validConditions, { shouldValidate: true });
     }
-    
+
     const isValid = await trigger();
     if (!isValid) {
       addAnteSucceToEnd();
@@ -119,7 +119,11 @@ export default function FourFtForm({
   return (
     <div className={'h-full w-full pt-4 border-gray-200'}>
       <form className={'px-4 flex flex-col items-start w-full'} onSubmit={onSubmitCheck}>
-        <div className={'flex flex-col md:gap-4 mt-8 md:mt-0 items-center md:flex-row justify-center gap-2'}>
+        <div
+          className={
+            'flex flex-col md:gap-4 mt-8 md:mt-0 items-center md:flex-row justify-center gap-2'
+          }
+        >
           <FourFtDatasetField
             datasets={datasets}
             currentDataset={currentDataset}
@@ -173,7 +177,7 @@ export default function FourFtForm({
             trigger={trigger}
           />
         </div>
-        
+
         {/* Condition section - visually separated */}
         <div className="w-full border-t border-gray-200 mt-12 pt-8">
           <div className="flex flex-col items-center">
@@ -195,18 +199,13 @@ export default function FourFtForm({
                 trigger={trigger}
               />
             ) : (
-              <Button 
-                type="button" 
-                onClick={addCondition}
-                variant="outline" 
-                className="mb-6"
-              >
+              <Button type="button" onClick={addCondition} variant="outline" className="mb-6">
                 Add Condition
               </Button>
             )}
           </div>
         </div>
-        
+
         <div className="w-full flex items-start justify-end pr-6 pt-12">
           <Button
             disabled={isLoading}

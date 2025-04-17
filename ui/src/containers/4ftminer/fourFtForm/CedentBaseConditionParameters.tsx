@@ -54,11 +54,7 @@ export default function CedentBaseConditionParameters({ register, errors }: Prop
       <div className={'w-[300px]'}>
         <div className="flex gap-1 items-center">
           <Label htmlFor={`conDisConditionType`}>Condition type</Label>
-          <InfoIcon
-            textContent={
-              'How condition literals (attributes and values) are combined'
-            }
-          />
+          <InfoIcon textContent={'How condition literals (attributes and values) are combined'} />
         </div>
         <Selectbox {...register(`conDisConditionType`)} error={errors?.conDisConditionType}>
           {cedentConDisTypes.map((option, i) => {
@@ -72,4 +68,4 @@ export default function CedentBaseConditionParameters({ register, errors }: Prop
       </div>
     </div>
   );
-} 
+}
