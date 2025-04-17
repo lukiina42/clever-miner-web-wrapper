@@ -33,14 +33,20 @@ export const fourftSchema = z
     anteMaxLen: IntMandatory(1, 64),
     succeMinLen: IntMandatory(1, 64),
     succeMaxLen: IntMandatory(1, 64),
+    condMinLen: IntOptional(0, 64),
+    condMaxLen: IntOptional(0, 64),
     conDisAntecedentType: z.nativeEnum(CedentConDisType, {
       invalid_type_error: 'Please choose an option',
     }),
     conDisSuccedentType: z.nativeEnum(CedentConDisType, {
       invalid_type_error: 'Please choose an option',
     }),
+    conDisConditionType: z.nativeEnum(CedentConDisType, {
+      invalid_type_error: 'Please choose an option',
+    }).nullable().optional(),
     antecedent: z.array(cedentZodObject),
     succedent: z.array(cedentZodObject),
+    condition: z.array(cedentZodObject).optional(),
   })
   .superRefine(({ antecedent, succedent }, ctx) => {
     const validAntecedensCount = antecedent.filter((a) => a.isValid).length;
@@ -105,10 +111,14 @@ export const fourftDefaultValues = {
   anteMinLen: '1',
   succeMaxLen: '1',
   succeMinLen: '1',
+  condMaxLen: '1',
+  condMinLen: '1',
   conDisAntecedentType: CedentConDisType.Conjunction,
   conDisSuccedentType: CedentConDisType.Conjunction,
+  conDisConditionType: CedentConDisType.Conjunction,
   antecedent: [anteSucceDefault],
   succedent: [anteSucceDefault],
+  condition: [],
 } satisfies FourFtSchemaT;
 
 export type FourFtSchemaT = z.infer<typeof fourftSchema>;
@@ -124,8 +134,11 @@ export const getValuesFromApi = (data: FourFtResultDetail): FourFtSchemaT => {
     anteMaxLen: data.ante_max_len.toString(),
     succeMinLen: data.succe_min_len.toString(),
     succeMaxLen: data.succe_max_len.toString(),
+    condMinLen: data.cond_min_len !== null ? data.cond_min_len.toString() : '0',
+    condMaxLen: data.cond_max_len !== null ? data.cond_max_len.toString() : '1',
     conDisAntecedentType: data.con_dis_antecedent_type,
     conDisSuccedentType: data.con_dis_succedent_type,
+    conDisConditionType: data.con_dis_condition_type,
     //move to function... or not
     antecedent: [
       ...data.antecedent.map((cedent) => {
@@ -153,6 +166,15 @@ export const getValuesFromApi = (data: FourFtResultDetail): FourFtSchemaT => {
       }),
       anteSucceDefault,
     ],
+    condition: data.condition ? 
+      data.condition.map((cedent) => ({
+        name: cedent.name,
+        id: cedent.id.toString(),
+        minLen: cedent.min_len.toString(),
+        maxLen: cedent.max_len.toString(),
+        type: cedent.type,
+        isValid: true,
+      })) : [],
   } satisfies FourFtSchemaT;
 };
 

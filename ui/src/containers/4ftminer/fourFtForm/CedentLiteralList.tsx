@@ -3,9 +3,13 @@ import { AnteSucceInputProps } from '@/type/anteSucceInput.ts';
 import AddAnteSucceDialog from '@/containers/4ftminer/fourFtForm/AddAnteSucceDialog.tsx';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
+// Updated type to include 'condition' as a valid title
+type CedentTitle = 'antecedent' | 'succedent' | 'condition';
+
 type Props = {
   remove: UseFieldArrayRemove;
-} & Omit<AnteSucceInputProps<FourFtSchemaT>, 'children' | 'isUpdate'>;
+  title: CedentTitle;
+} & Omit<AnteSucceInputProps<FourFtSchemaT>, 'children' | 'isUpdate' | 'title'>;
 
 export default function CedentLiteralList({
   remove,
@@ -31,7 +35,7 @@ export default function CedentLiteralList({
     <div className="w-full flex flex-col gap-1">
       {cedents.length > 0 && <span className={'text-sm font-bold'}>Literals</span>}
       {cedents.map(({ name, type, minLen, maxLen }, index) => (
-        // @ts-ignore
+        // @ts-ignore - Ignoring type issues as we're handling this with our custom CedentTitle type
         <AddAnteSucceDialog
           title={title}
           append={append}

@@ -7,7 +7,6 @@ import {
   UseFormRegister,
   UseFormSetValue,
 } from 'react-hook-form';
-import { capitalizeFirstLetter } from '@/utils/helperFunction.ts';
 import TextInputField from '@/components/form/TextInputField.tsx';
 import { Label } from '@/components/ui/label.tsx';
 import { InfoIcon } from '@/components/ui/InfoIcon.tsx';
@@ -18,7 +17,7 @@ import { Button } from '@/components/ui/button.tsx';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
 type Props = {
-  fieldName: 'antecedent' | 'succedent';
+  fieldName: 'antecedent' | 'succedent' | 'condition';
   register: UseFormRegister<FourFtSchemaT>;
   errors: FieldErrors<FourFtSchemaT>;
   disabled?: boolean;

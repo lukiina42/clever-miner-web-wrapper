@@ -49,10 +49,12 @@ class Dataset(models.Model):
 class Cedent(models.Model):
     ANTECEDENT = 'antecedent'
     SUCCEDENT = 'succedent'
+    CONDITION = 'condition'
 
     ROLE_CHOICES = [
         (ANTECEDENT, 'Antecedent'),
         (SUCCEDENT, 'Succedent'),
+        (CONDITION, 'Condition'),
     ]
 
     name = models.CharField(max_length=256)
@@ -96,5 +98,9 @@ class FourFtResult(models.Model):
     succe_max_len = models.IntegerField(null=False, validators=[MinValueValidator(1), MaxValueValidator(128)])
     con_dis_antecedent_type = models.CharField(max_length=256)
     con_dis_succedent_type = models.CharField(max_length=256)
+    con_dis_condition_type = models.CharField(max_length=256, null=True, blank=True)
+    # Condition length parameters
+    cond_min_len = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(128)])
+    cond_max_len = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(128)])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -21,6 +21,7 @@ from ..serializers.rule import RuleDataSerializer
 from ..utils.clm_init import clm_init
 import matplotlib.pyplot as plt
 from drf_spectacular.utils import extend_schema
+from rest_framework import serializers
 
 
 class FourFtMinerView(APIView):
@@ -50,34 +51,53 @@ class FourFtMinerView(APIView):
         confidence = validated_data['confidence']
         rel_base = validated_data['rel_base']
         aad = validated_data['aad']
-        antecedents = validated_data.get('antecedent', [])
-        succedents = validated_data.get('succedent', [])
+        antecedent_literals = validated_data.get('antecedent', [])
+        succedent_literals = validated_data.get('succedent', [])
+        condition_literals = validated_data.get('condition', [])  # Get optional condition literals
         ante_min_len = validated_data.get('ante_min_len')
         ante_max_len = validated_data.get('ante_max_len')
         succe_min_len = validated_data.get('succe_min_len')
         succe_max_len = validated_data.get('succe_max_len')
         con_dis_antecedent_type = validated_data.get('con_dis_antecedent_type')
         con_dis_succedent_type = validated_data.get('con_dis_succedent_type')
+        con_dis_condition_type = validated_data.get('con_dis_condition_type')
+        cond_min_len = validated_data.get('cond_min_len', 1) # Default to 1 if not provided
+        cond_max_len = validated_data.get('cond_max_len', 1) # Default to 1 if not provided
+
+        # Validate condition type if condition literals are provided
+        if condition_literals and not con_dis_condition_type:
+            raise serializers.ValidationError({"con_dis_condition_type": "Condition type is required when condition literals are provided."})
 
         # Prepare antecedent and succedent attributes
         antecedent_attributes = [
             {
-                'name': antecedent['name'],
-                'type': antecedent['type'],
-                'minlen': antecedent['min_len'],
-                'maxlen': antecedent['max_len']
+                'name': antecedent_literal['name'],
+                'type': antecedent_literal['type'],
+                'minlen': antecedent_literal['min_len'],
+                'maxlen': antecedent_literal['max_len']
             }
-            for antecedent in antecedents
+            for antecedent_literal in antecedent_literals
         ]
 
         succedent_attributes = [
             {
-                'name': succedent['name'],
-                'type': succedent['type'],
-                'minlen': succedent['min_len'],
-                'maxlen': succedent['max_len']
+                'name': succedent_literal['name'],
+                'type': succedent_literal['type'],
+                'minlen': succedent_literal['min_len'],
+                'maxlen': succedent_literal['max_len']
             }
-            for succedent in succedents
+            for succedent_literal in succedent_literals
+        ]
+        
+        # Prepare condition attributes (if provided)
+        condition_attributes = [
+            {
+                'name': condition_literal['name'],
+                'type': condition_literal['type'],
+                'minlen': condition_literal['min_len'],
+                'maxlen': condition_literal['max_len']
+            }
+            for condition_literal in condition_literals
         ]
 
         # Get dataset URL and load the file
@@ -97,20 +117,36 @@ class FourFtMinerView(APIView):
         if len(quantifiers) == 0:
             quantifiers = {'Base': 0}
 
-        # Run cleverminer
-        clm = cleverminer(
-            df=file,
-            proc='4ftMiner',
-            quantifiers=quantifiers,
-            ante={
-                'attributes': antecedent_attributes, 'minlen': ante_min_len, 'maxlen': ante_max_len,
+        # Prepare parameters for cleverminer
+        params = {
+            'df': file,
+            'proc': '4ftMiner',
+            'quantifiers': quantifiers,
+            'ante': {
+                'attributes': antecedent_attributes, 
+                'minlen': ante_min_len, 
+                'maxlen': ante_max_len,
                 'type': con_dis_antecedent_type
             },
-            succ={
-                'attributes': succedent_attributes, 'minlen': succe_min_len, 'maxlen': succe_max_len,
+            'succ': {
+                'attributes': succedent_attributes, 
+                'minlen': succe_min_len, 
+                'maxlen': succe_max_len,
                 'type': con_dis_succedent_type
             }
-        )
+        }
+        
+        # Add condition if provided
+        if condition_attributes:
+            params['cond'] = {
+                'attributes': condition_attributes,
+                'minlen': cond_min_len,
+                'maxlen': cond_max_len,
+                'type': con_dis_condition_type
+            }
+
+        # Run cleverminer
+        clm = cleverminer(**params)
         
         return clm
     

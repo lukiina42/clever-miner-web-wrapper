@@ -69,6 +69,9 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     succe_max_len = serializers.IntegerField(min_value=1, max_value=128)
     con_dis_antecedent_type = serializers.CharField(max_length=256)
     con_dis_succedent_type = serializers.CharField(max_length=256)
+    con_dis_condition_type = serializers.CharField(max_length=256, required=False, allow_null=True)
+    cond_min_len = serializers.IntegerField(min_value=1, max_value=128, required=False, allow_null=True)
+    cond_max_len = serializers.IntegerField(min_value=1, max_value=128, required=False, allow_null=True)
     created_at = serializers.CharField(read_only=True)
     updated_at = serializers.CharField(read_only=True)
     user = UserSerializer(read_only=True)
@@ -76,6 +79,7 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
     # Used for POST (create) requests
     antecedent = CedentSerializer(many=True, write_only=True)
     succedent = CedentSerializer(many=True, write_only=True)
+    condition = CedentSerializer(many=True, write_only=True, required=False)
 
     class Meta:
         model = FourFtResult
@@ -88,8 +92,8 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             file_path = storage.upload_clm_file(clm, existing_storage_file)
         return file_path, len(clm.rulelist)
         
-    def _create_cedents(self, four_ft_result, antecedents, succedents):
-        """Helper method to create cedent objects for antecedents and succedents"""
+    def _create_cedents(self, four_ft_result, antecedents, succedents, conditions=None):
+        """Helper method to create cedent objects for antecedents, succedents, and conditions"""
         # Create Cedent instances for antecedents
         Cedent.objects.bulk_create([
             Cedent(
@@ -113,13 +117,27 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
                 four_ft_result=four_ft_result
             ) for succedent in succedents
         ])
+        
+        # Create Cedent instances for conditions (if provided)
+        if conditions:
+            Cedent.objects.bulk_create([
+                Cedent(
+                    name=condition['name'],
+                    type=condition['type'],
+                    min_len=condition['min_len'],
+                    max_len=condition['max_len'],
+                    role=Cedent.CONDITION,
+                    four_ft_result=four_ft_result
+                ) for condition in conditions
+            ])
 
     def create(self, validated_data):
         clm = validated_data.pop('clm', None)
-        user = validated_data.pop('user', None)  # Get the user from validated_data
+        user = validated_data.pop('user', None)
 
         antecedents = validated_data.pop('antecedent', [])
         succedents = validated_data.pop('succedent', [])
+        conditions = validated_data.pop('condition', [])
         dataset_id = validated_data.pop('dataset_id')
 
         try:
@@ -127,7 +145,6 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         except Dataset.DoesNotExist:
             raise serializers.ValidationError({"dataset_id": f"Dataset with id {dataset_id} not found."})
         
-
         # Process S3 and CLM
         file_path, rules_count = self._process_clm(clm)
         
@@ -150,7 +167,7 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             four_ft_result.save()
 
         # Create cedents
-        self._create_cedents(four_ft_result, antecedents, succedents)
+        self._create_cedents(four_ft_result, antecedents, succedents, conditions)
 
         return four_ft_result
 
@@ -167,11 +184,13 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         # Extract related data from the validated data
         antecedents = validated_data.pop('antecedent', [])
         succedents = validated_data.pop('succedent', [])
+        conditions = validated_data.pop('condition', [])  # Get optional condition literals
         dataset_id = validated_data.pop('dataset_id', instance.dataset.id)  # Keep existing dataset if not changed
 
         # Update fields of the instance
         for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+            if hasattr(instance, attr):
+                 setattr(instance, attr, value)
 
         # Fetch dataset if changed
         if dataset_id != instance.dataset.id:
@@ -185,10 +204,12 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         Cedent.objects.filter(four_ft_result=instance).delete()
 
         # Create new cedents
-        self._create_cedents(instance, antecedents, succedents)
+        self._create_cedents(instance, antecedents, succedents, conditions)
         
-        if(instance.storage_file):
+        # Handle storage file update/deletion
+        if instance.storage_file:
             storage.delete_file(instance.storage_file)
+            instance.storage_file = None # Remove reference before potentially creating a new one
 
         # Process CLM and get the new file path (if any)
         file_path, rules_count = self._process_clm(clm, instance.storage_file)
@@ -229,12 +250,15 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             
         antecedents = instance.cedents.filter(role=Cedent.ANTECEDENT)
         succedents = instance.cedents.filter(role=Cedent.SUCCEDENT)
+        conditions = instance.cedents.filter(role=Cedent.CONDITION)
 
         antecedents = CedentSerializer(antecedents, many=True).data
         succedents = CedentSerializer(succedents, many=True).data
+        conditions = CedentSerializer(conditions, many=True).data
 
         representation["antecedent"] = CedentSerializer(antecedents, many=True).data
         representation["succedent"] = CedentSerializer(succedents, many=True).data
+        representation["condition"] = CedentSerializer(conditions, many=True).data
 
         storage_file = instance.storage_file
 

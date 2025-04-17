@@ -35,4 +35,8 @@ export type AnteSucceInputProps<T extends FieldValues> = {
       title: 'succedent';
       append: UseFieldArrayAppend<FourFtSchemaT, 'succedent'>;
     }
+  | {
+      title: 'condition';
+      append: UseFieldArrayAppend<FourFtSchemaT, 'condition'>;
+    }
 );

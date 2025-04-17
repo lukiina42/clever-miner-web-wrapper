@@ -12,6 +12,13 @@ import AnteSucceInput from '@/containers/4ftminer/fourFtForm/AnteSucceInput.tsx'
 import { AnteSucceInputProps } from '@/type/anteSucceInput.ts';
 import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 
+// Updated Props type to include 'condition' as a valid title
+type CedentTitle = 'antecedent' | 'succedent' | 'condition';
+
+type Props = Omit<AnteSucceInputProps<FourFtSchemaT>, 'title'> & {
+  title: CedentTitle;
+};
+
 export default function AddAnteSucceDialog({
   title,
   append,
@@ -27,7 +34,7 @@ export default function AddAnteSucceDialog({
   datasetHeaderNames,
   fieldLength,
   children,
-}: AnteSucceInputProps<FourFtSchemaT>) {
+}: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   const index = fieldLength - 1;

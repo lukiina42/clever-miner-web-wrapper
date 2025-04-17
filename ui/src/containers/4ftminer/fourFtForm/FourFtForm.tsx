@@ -1,4 +1,4 @@
-import React, { FormEvent, SetStateAction, useMemo } from 'react';
+import React, { FormEvent, SetStateAction, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button.tsx';
 import {
   Control,
@@ -17,10 +17,13 @@ import FourFtQuantifiers from '@/containers/4ftminer/fourFtForm/FourFtQuantifier
 import FourFtDatasetField from '@/containers/4ftminer/fourFtForm/FourFtDatasetField.tsx';
 import Antecedent from '@/containers/4ftminer/fourFtForm/Antecedent.tsx';
 import Succedent from '@/containers/4ftminer/fourFtForm/Succedent.tsx';
+import Condition from '@/containers/4ftminer/fourFtForm/Condition.tsx';
 import { FourFtSchemaT, QuantifierField } from '@/schema/fourFtForm.ts';
 import { Label } from '@/components/ui/label.tsx';
 import { InfoIcon } from '@/components/ui/InfoIcon.tsx';
 import TextInputField from '@/components/form/TextInputField.tsx';
+import { useFieldArray } from 'react-hook-form';
+import { anteSucceDefault } from '@/data/cedent.ts';
 
 interface Props<T extends FieldValues> {
   onSubmit: (data: T) => void;
@@ -68,10 +71,24 @@ export default function FourFtForm({
   quantifierOptions,
   addAnteSucceToEnd,
 }: Props<FourFtSchemaT> & { handleSubmit: UseFormHandleSubmit<FourFtSchemaT> }) {
+  const [showCondition, setShowCondition] = useState(false);
+  
   const datasetHeaderNames: DatasetHeaderName[] = useMemo(() => {
     const headerNames = currentDataset?.value?.header_names ?? [];
     return headerNames.map((headerName) => ({ id: headerName, name: headerName }));
   }, [currentDataset]);
+
+  const { fields: conditionFields, append: appendCondition } = useFieldArray({
+    control,
+    name: 'condition',
+  });
+
+  const addCondition = () => {
+    if (conditionFields.length === 0) {
+      appendCondition({...anteSucceDefault});
+    }
+    setShowCondition(true);
+  };
 
   const onSubmitCheck = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -80,8 +97,18 @@ export default function FourFtForm({
     const validAntecedents = antecedents.filter((cedent) => cedent.isValid);
     const validSuccedents = succedents.filter((cedent) => cedent.isValid);
 
+    // Handle condition literals if present
+    const conditions = getValues('condition') || [];
+    const validConditions = conditions.filter((cedent) => cedent.isValid);
+
     setValue('antecedent', validAntecedents, { shouldValidate: true });
     setValue('succedent', validSuccedents, { shouldValidate: true });
+    
+    // Only set condition if we have valid conditions
+    if (validConditions.length > 0) {
+      setValue('condition', validConditions, { shouldValidate: true });
+    }
+    
     const isValid = await trigger();
     if (!isValid) {
       addAnteSucceToEnd();
@@ -146,6 +173,40 @@ export default function FourFtForm({
             trigger={trigger}
           />
         </div>
+        
+        {/* Condition section - visually separated */}
+        <div className="w-full border-t border-gray-200 mt-12 pt-8">
+          <div className="flex flex-col items-center">
+            <div className="flex items-center justify-center mb-6">
+              <h3 className="text-lg font-medium">Condition (Optional)</h3>
+              <InfoIcon textContent="Optional condition literals that restrict the mining process" />
+            </div>
+
+            {showCondition ? (
+              <Condition
+                errors={errors}
+                register={register}
+                clearErrors={clearErrors}
+                setValue={setValue}
+                control={control}
+                datasetsLoading={datasetsLoading}
+                datasetHeaderNames={datasetHeaderNames}
+                currentDataset={currentDataset}
+                trigger={trigger}
+              />
+            ) : (
+              <Button 
+                type="button" 
+                onClick={addCondition}
+                variant="outline" 
+                className="mb-6"
+              >
+                Add Condition
+              </Button>
+            )}
+          </div>
+        </div>
+        
         <div className="w-full flex items-start justify-end pr-6 pt-12">
           <Button
             disabled={isLoading}
