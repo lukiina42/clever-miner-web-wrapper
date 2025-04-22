@@ -44,6 +44,7 @@ interface Props<T extends FieldValues> {
   removeQuantifier: (index: QuantifierField) => void;
   quantifierOptions: QuantifierField[];
   addAnteSucceToEnd: () => void;
+  displayConditions?: boolean;
 }
 
 export type DatasetHeaderName = {
@@ -70,8 +71,9 @@ export default function FourFtForm({
   removeQuantifier,
   quantifierOptions,
   addAnteSucceToEnd,
+  displayConditions = false,
 }: Props<FourFtSchemaT> & { handleSubmit: UseFormHandleSubmit<FourFtSchemaT> }) {
-  const [showCondition, setShowCondition] = useState(false);
+  const [showConditionState, setShowConditionState] = useState(displayConditions);
 
   const datasetHeaderNames: DatasetHeaderName[] = useMemo(() => {
     const headerNames = currentDataset?.value?.header_names ?? [];
@@ -83,11 +85,15 @@ export default function FourFtForm({
     name: 'condition',
   });
 
+  const showCondition = showConditionState && conditionFields.length > 0;
+
+  const removeAllConditions = () => setValue('condition', [], { shouldValidate: true });
+
   const addCondition = () => {
     if (conditionFields.length === 0) {
       appendCondition({ ...anteSucceDefault });
     }
-    setShowCondition(true);
+    setShowConditionState(true);
   };
 
   const onSubmitCheck = async (event: FormEvent<HTMLFormElement>) => {
@@ -179,11 +185,20 @@ export default function FourFtForm({
         </div>
 
         {/* Condition section - visually separated */}
-        <div className="w-full border-t border-gray-200 mt-12 pt-8">
+        <div className="w-full border-t border-gray-200 mt-4 pt-4">
           <div className="flex flex-col items-center">
-            <div className="flex items-center justify-center mb-6">
-              <h3 className="text-lg font-medium">Condition (Optional)</h3>
-              <InfoIcon textContent="Optional condition literals that restrict the mining process" />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center justify-center gap-8 mb-2">
+                <div className="text-lg font-bold">Condition (Optional)</div>
+                {showCondition && (
+                  <div
+                    onClick={removeAllConditions}
+                    className="w-4 h-4 mb-0.5 flex items-center justify-center rounded-full bg-red-500 text-white cursor-pointer"
+                  >
+                    <span className={'mb-0.5'}>-</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {showCondition ? (

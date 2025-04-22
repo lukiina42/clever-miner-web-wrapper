@@ -142,6 +142,7 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
                 addQuantifier={addQuantifier}
                 removeQuantifier={removeQuantifier}
                 quantifierOptions={quantifierOptions}
+                displayConditions={(data.condition?.length ?? 0) > 0}
               />
             </Form>
           </CollapsibleContent>

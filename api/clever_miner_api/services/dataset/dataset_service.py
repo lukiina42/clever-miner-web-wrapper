@@ -1,7 +1,7 @@
 from rest_framework.exceptions import NotFound, PermissionDenied
 from ...models import Dataset, FourFtResult
 from ...storage import delete_file
-
+from ...serializers.dataset import DatasetSerializer
 
 class DatasetService:
     """
@@ -79,7 +79,13 @@ class DatasetService:
         Args:
             dataset: Dataset instance to delete
         """
-        if dataset.s3_key:
-            delete_file(dataset.s3_key)
-        
-        dataset.delete() 
+        delete_file(dataset.storage_file)
+        dataset.delete()
+    
+    @staticmethod
+    def get_dataset_url(dataset):
+        """
+        Get the signed URL for a dataset.
+        """
+        return DatasetSerializer(dataset).get_url(dataset)
+    

@@ -28,6 +28,7 @@ export default function FourFtDatasetField({
     });
     setValue('antecedent', [anteSucceDefault]);
     setValue('succedent', [anteSucceDefault]);
+    setValue('condition', []);
   };
 
   return (

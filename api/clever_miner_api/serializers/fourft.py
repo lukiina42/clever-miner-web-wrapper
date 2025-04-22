@@ -164,7 +164,6 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
                 storage_type=storage.get_storage_type()
             )
             four_ft_result.storage_file = storage_file
-            four_ft_result.save()
 
         # Create cedents
         self._create_cedents(four_ft_result, antecedents, succedents, conditions)
@@ -222,12 +221,12 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             instance.storage_file.file_path = file_path
             instance.storage_file.storage_type = storage.get_storage_type()
             instance.storage_file.save()
-        else:
-            storage_file = StorageFile.objects.create(
-                file_path=file_path,
-                storage_type=storage.get_storage_type()
-            )
-            instance.storage_file = storage_file
+        elif file_path: 
+                storage_file = StorageFile.objects.create(
+                    file_path=file_path,
+                    storage_type=storage.get_storage_type()
+                )
+                instance.storage_file = storage_file
         
         # Save updated instance
         instance.save()

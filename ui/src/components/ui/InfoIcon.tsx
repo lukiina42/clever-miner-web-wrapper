@@ -12,7 +12,7 @@ export function InfoIcon({ textContent }: Props) {
       <PopoverTrigger asChild>
         <InformationCircleIcon className="h-5 w-5 text-gray-300 cursor-pointer" />
       </PopoverTrigger>
-      <PopoverContent className="w-fit" side={'top'} align="start">
+      <PopoverContent className="w-fit" side={'top'} align="center">
         <div className="grid gap-4">
           <div className="space-y-2">
             <div className="text-sm text-muted-foreground">{textContent}</div>
