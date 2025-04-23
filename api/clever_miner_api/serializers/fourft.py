@@ -5,9 +5,7 @@ from .user import UserSerializer
 from ..models import Dataset, FourFtResult, Cedent, StorageFile
 
 from ..utils.clm_init import clm_init
-from ..utils.s3 import clm_s3_upload, create_presigned_url, download_s3_file, object_s3_delete
 from .. import storage
-import json
 
 import re
 
@@ -153,9 +151,6 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
             'rules_count': rules_count,
             'dataset_name': dataset.name,
         })
-        
-        # Create the FourFtResult instance with user
-        four_ft_result = FourFtResult.objects.create(dataset=dataset, user=user, **validated_data)
 
         # Create a StorageFile record
         if file_path:
@@ -163,8 +158,11 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
                 file_path=file_path,
                 storage_type=storage.get_storage_type()
             )
-            four_ft_result.storage_file = storage_file
+            validated_data['storage_file'] = storage_file
 
+        # Create the FourFtResult instance with user
+        four_ft_result = FourFtResult.objects.create(dataset=dataset, user=user, **validated_data)
+        
         # Create cedents
         self._create_cedents(four_ft_result, antecedents, succedents, conditions)
 
