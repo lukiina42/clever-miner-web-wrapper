@@ -12,9 +12,10 @@ import RuleDetailDialogBase from '@/containers/4ftminer/fourFtForm/rules/RuleDet
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { Link } from '@tanstack/react-router';
 import useGetSession from '@/hook/useGetSession.ts';
+import { RuleParams } from '@/api/fourft.ts';
 
 type Props = {
-  currentRuleId: number | null;
+  currentRuleId: number;
   closeDialog: () => void;
   fourFtResultId: string;
 };
@@ -25,21 +26,24 @@ export default function RuleDetailDialog({ currentRuleId, closeDialog, fourFtRes
   const session = useGetSession();
 
   const ruleData = useQuery({
-    ...ruleQueryOptions(fourFtResultId, currentRuleId, session?.tokens?.accessToken),
+    ...ruleQueryOptions(fourFtResultId, currentRuleId, session?.tokens?.accessToken ?? ''),
     enabled: currentRuleId !== null,
   });
 
   const isLoading = ruleData.isPending;
 
-  const params = ruleData?.data?.rule?.params;
+  const params = ruleData?.data?.rule?.params as RuleParams;
 
   return (
     <Dialog open={isOpen} onOpenChange={() => closeDialog()}>
-      <DialogContent>
+      <DialogContent className="min-w-[40rem]">
         <DialogHeader>
           <DialogTitle className={'text-2xl flex justify-between items-center pr-8'}>
             <div>Rule {currentRuleId} detail</div>
-            <Link to={`/fourft/${fourFtResultId}/rules/${currentRuleId}`}>
+            <Link
+              to={'/fourft/$fourftId/rules/$ruleId'}
+              params={{ fourftId: fourFtResultId, ruleId: currentRuleId.toString() }}
+            >
               <ArrowTopRightOnSquareIcon className={'w-5 h-5'} />
             </Link>
           </DialogTitle>
@@ -52,7 +56,7 @@ export default function RuleDetailDialog({ currentRuleId, closeDialog, fourFtRes
             <ClipLoader size={48} />
           </div>
         ) : (
-          <RuleDetailDialogBase ruleParams={params} plot={ruleData?.data?.plot} />
+          <RuleDetailDialogBase ruleParams={params} plot={ruleData?.data?.plot as string} />
         )}
       </DialogContent>
     </Dialog>

@@ -125,11 +125,13 @@ export default function FourFtRules({ rules, fourFtResultId }: Props) {
           </TableBody>
         </Table>
       )}
-      <RuleDetailDialog
-        fourFtResultId={fourFtResultId}
-        currentRuleId={currentRuleId}
-        closeDialog={closeDialog}
-      />
+      {currentRuleId !== null && (
+        <RuleDetailDialog
+          fourFtResultId={fourFtResultId}
+          currentRuleId={currentRuleId}
+          closeDialog={closeDialog}
+        />
+      )}
     </div>
   );
 }

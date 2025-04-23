@@ -17,11 +17,11 @@ The application uses TanStack Router with a nested route structure:
 
 - `__root.tsx`: The root route that contains all other routes
   - `_protected.tsx`: A layout route that wraps all protected routes
-    - `_protected._fourft.tsx`: The 4FT miner layout route
-      - `_protected._fourft.fourft.index.tsx`: The 4FT miner index page
-      - `_protected._fourft.fourft.create.index.tsx`: The 4FT miner create page
-      - `_protected._fourft.fourft.$fourftId.index.tsx`: The 4FT miner detail page
-      - `_protected._fourft.fourft.$fourftId.rules.$ruleId.index.tsx`: The 4FT miner rule detail page
+    - `_protected._fourft.tsx`: The 4ft-Miner layout route
+      - `_protected._fourft.fourft.index.tsx`: The 4ft-Miner index page
+      - `_protected._fourft.fourft.create.index.tsx`: The 4ft-Miner create page
+      - `_protected._fourft.fourft.$fourftId.index.tsx`: The 4ft-Miner detail page
+      - `_protected._fourft.fourft.$fourftId.rules.$ruleId.index.tsx`: The 4ft-Miner rule detail page
     - `_protected._dataset.datasets.tsx`: The datasets page
   - `index.tsx`: The home page (not protected)
   - `auth.index.tsx`: The login page (not protected)

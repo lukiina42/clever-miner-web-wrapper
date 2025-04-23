@@ -18,7 +18,7 @@ function FourFtLayout() {
   return (
     <div className={'w-full h-full'}>
       <PageHeading
-        title={'4FT Miner'.concat(ruleId !== null ? ` - procedure rule ${ruleId}` : '')}
+        title={'4ft-Miner'.concat(ruleId !== null ? ` - procedure rule ${ruleId}` : '')}
         action={
           location.pathname === '/fourft' ? (
             <Link to={'/fourft/create'}>

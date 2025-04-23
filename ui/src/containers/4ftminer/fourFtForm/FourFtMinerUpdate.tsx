@@ -118,7 +118,7 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
         >
           {!formIsOpen && (
             <div className="flex pl-8 pt-8 items-center mb-2">
-              <div className="text-xl font-semibold">Four FT parameters Form</div>
+              <div className="text-xl font-semibold">4ft-Miner parameters Form</div>
             </div>
           )}
           <CollapsibleContent className="w-full">

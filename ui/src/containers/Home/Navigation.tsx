@@ -12,10 +12,18 @@ export default function Navigation() {
           <Link to="/" className="[&.active]:font-bold">
             Home
           </Link>
-          <Link to="/fourft" className="[&.active]:font-bold">
-            4ft Miner
+          <Link
+            to="/fourft"
+            search={{ ordering: undefined, name: undefined, datasetName: undefined }}
+            className="[&.active]:font-bold"
+          >
+            4ft-Miner
           </Link>
-          <Link to="/datasets" className="[&.active]:font-bold">
+          <Link
+            to="/datasets"
+            search={{ ordering: undefined, name: undefined }}
+            className="[&.active]:font-bold"
+          >
             Datasets
           </Link>
           <ArrowLeftStartOnRectangleIcon

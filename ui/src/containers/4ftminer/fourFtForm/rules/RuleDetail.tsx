@@ -40,7 +40,7 @@ export default function RuleDetail({ data }: Props) {
           </div>
         </div>
         <div className={'flex justify-end pr-4 pt-4'}>
-          <Link to={`/fourft/${fourftId}`}>
+          <Link to={'/fourft/$fourftId'} params={{ fourftId }}>
             <Button type="button" className="cursor-pointer bg-black hover:bg-gray-800 w-44">
               Back to 4ft procedure
             </Button>
