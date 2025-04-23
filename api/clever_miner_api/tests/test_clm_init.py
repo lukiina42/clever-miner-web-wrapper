@@ -4,7 +4,6 @@ import os
 import shutil
 import pandas as pd
 import pickle
-import ipdb
 from ..utils.clm_init import clm_init
 
 class TestClmInit(SimpleTestCase):
@@ -52,36 +51,36 @@ class TestClmInit(SimpleTestCase):
         if os.path.exists(cls.data_dir):
             shutil.rmtree(cls.data_dir)
 
-    @patch('clever_miner_api.utils.clm_init.download_s3_file')
+    @patch('clever_miner_api.utils.clm_init.download_file')
     @patch('clever_miner_api.utils.clm_init.remove_file')
     @patch('clever_miner_api.utils.clm_init.cleverminer')
     def test_clm_init_success(self, mock_cleverminer, mock_remove_file, mock_download):
         # Arrange
-        s3_key = 'test_key.pkl'
+        storage_file = MagicMock()
         mock_clm_instance = MagicMock()
         mock_cleverminer.return_value = mock_clm_instance
 
-        # Mock S3 download to copy our test pickle file
-        def mock_download_implementation(key, local_path):
+        # Mock download to copy our test pickle file
+        def mock_download_implementation(storage_file, local_path):
             shutil.copy(self.test_pickle_path, local_path)
         mock_download.side_effect = mock_download_implementation
 
         # Act
-        result = clm_init(s3_key)
+        result = clm_init(storage_file)
 
         # Assert
-        mock_download.assert_called_once_with(s3_key, 'temp_clm_file.pkl')
+        mock_download.assert_called_once_with(storage_file, 'temp_clm_file.pkl')
         mock_clm_instance.load.assert_called_once_with('temp_clm_file.pkl')
         mock_remove_file.assert_called_once_with('../../temp_clm_file.pkl')
         self.assertEqual(result, mock_clm_instance)
 
-    @patch('clever_miner_api.utils.clm_init.download_s3_file')
+    @patch('clever_miner_api.utils.clm_init.download_file')
     def test_clm_init_download_failure(self, mock_download):
         # Arrange
-        s3_key = 'test_key.pkl'
+        storage_file = MagicMock()
         
         mock_download.side_effect = Exception('Failed to download')
 
         # Act & Assert
         with self.assertRaises(Exception):
-            clm_init(s3_key) 
+            clm_init(storage_file) 
