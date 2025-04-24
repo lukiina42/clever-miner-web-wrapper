@@ -133,10 +133,6 @@ def create_local_url(file_path):
     if not default_storage.exists(file_path):
         raise FileNotFoundError(f"File {file_path} not found in local storage")
     
-    # For development, use the file:// protocol
-    # if settings.DEBUG:
-    #     return f"{settings.MEDIA_URL}{file_path}"
-    
     base_url = settings.BASE_URL
     
     # For production, use the configured URL
