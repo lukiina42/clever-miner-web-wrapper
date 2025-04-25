@@ -1,5 +1,5 @@
 import { createRootRoute, Link, Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+// import { TanStackRouterDevtools } from '@tanstack/router-devtools';
 import Navigation from '@/containers/Home/Navigation.tsx';
 
 export const Route = createRootRoute({
@@ -9,7 +9,7 @@ export const Route = createRootRoute({
       <div className={'flex w-full h-[calc(100%-9rem)]'}>
         <Outlet />
       </div>
-      <TanStackRouterDevtools />
+      {/*<TanStackRouterDevtools />*/}
     </div>
   ),
   notFoundComponent: () => {
