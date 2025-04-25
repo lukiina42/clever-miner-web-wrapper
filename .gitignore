@@ -165,7 +165,6 @@ cython_debug/
 #.idea/
 
 api/clever_miner_api/cleverminer.py
-api/intermediate_results
 api/media
 api/staticfiles/
 
