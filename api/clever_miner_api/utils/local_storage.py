@@ -111,10 +111,13 @@ def object_local_delete(file_path):
     if file_path.startswith('local:'):
         file_path = file_path[6:]  # Remove 'local:' prefix
         
-    if default_storage.exists(file_path):
-        default_storage.delete(file_path)
+    try:
+        if default_storage.exists(file_path):
+            default_storage.delete(file_path)
         return True
-    return False
+    except Exception as e:
+        logger.warning(f"Error deleting file {file_path}: {str(e)}")
+        return False
 
 def create_local_url(file_path):
     """

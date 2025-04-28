@@ -123,9 +123,11 @@ class FourFtResultDetailView(APIView):
         Retrieve a specific FourFtResult by ID.
         """
         result_id = id or four_ft_id
-        result = get_object_or_404(FourFtResult, id=result_id)
         
         try:
+            # Get result with permission check
+            result = ResultService.get_result_with_permission_check(result_id, request.user)
+            
             # Get ordering parameter from query params
             ordering = request.query_params.get('ordering', None)
 
@@ -144,6 +146,8 @@ class FourFtResultDetailView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
         except PermissionDenied as e:
             return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
  
     def put(self, request, id, *args, **kwargs):
         """
@@ -192,6 +196,7 @@ class FourFtResultDetailView(APIView):
         # Delete the file from storage
         if result.storage_file:
             storage.delete_file(result.storage_file)
+            result.storage_file.delete()
             
         # Delete the result
         result.delete()

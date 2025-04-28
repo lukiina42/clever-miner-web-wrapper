@@ -80,6 +80,7 @@ class DatasetService:
             dataset: Dataset instance to delete
         """
         delete_file(dataset.storage_file)
+        dataset.storage_file.delete()
         dataset.delete()
     
     @staticmethod

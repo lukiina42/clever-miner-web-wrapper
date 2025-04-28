@@ -1,0 +1,2 @@
+AgeStatus income
+young high 

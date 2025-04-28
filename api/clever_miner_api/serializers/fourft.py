@@ -239,11 +239,12 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         representation = super().to_representation(instance)
         
         request = self.context.get("request", None)
-        request_params = request.parser_context["kwargs"]
-        
         is_detail_request = False
-        if request_params.get("id") is not None or request_params.get("four_ft_id") is not None:
-            is_detail_request = True
+        
+        if request and hasattr(request, 'parser_context'):
+            request_params = request.parser_context.get("kwargs", {})
+            if request_params.get("id") is not None or request_params.get("four_ft_id") is not None:
+                is_detail_request = True
             
         antecedents = instance.cedents.filter(role=Cedent.ANTECEDENT)
         succedents = instance.cedents.filter(role=Cedent.SUCCEDENT)
@@ -253,9 +254,9 @@ class FourFtMinerSerializer(CamelCaseToSnakeCaseSerializer):
         succedents = CedentSerializer(succedents, many=True).data
         conditions = CedentSerializer(conditions, many=True).data
 
-        representation["antecedent"] = CedentSerializer(antecedents, many=True).data
-        representation["succedent"] = CedentSerializer(succedents, many=True).data
-        representation["condition"] = CedentSerializer(conditions, many=True).data
+        representation["antecedent"] = antecedents
+        representation["succedent"] = succedents
+        representation["condition"] = conditions
 
         storage_file = instance.storage_file
 
