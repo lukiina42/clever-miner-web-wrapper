@@ -100,16 +100,32 @@ export const useCreateDataset = (
       const response = await authFetch(datasetApiUrl, {
         method: 'POST',
         body: data,
-        headers: { Authorization: `Bearer ${sessionState.tokens.accessToken}` },
+        headers: { Authorization: `Bearer ${sessionState?.tokens?.accessToken ?? ''}` },
       });
+
       if (response.status === 201) {
         await queryClient.invalidateQueries({ queryKey: DATASETS_COLLECTION_QUERY_KEY });
         setOpenForm(false);
+        return await response.json();
       }
-      return await response.json();
+
+      if (response.status === 400) {
+        throw new Error('Invalid data provided');
+      } else if (response.status === 403) {
+        throw new Error('You do not have permission to create datasets');
+      } else if (response.status === 413) {
+        throw new Error('File too large');
+      } else if (response.status === 415) {
+        throw new Error('Unsupported file type');
+      } else {
+        throw new Error(
+          'An unexpected error occurred. The problem might be caused by wrong delimiter.'
+        );
+      }
     },
     onSuccess: async () => {},
     onError: (error) => {
+      console.error('Error creating dataset:', error);
       throw error;
     },
   });
@@ -128,7 +144,7 @@ export const useDeleteDataset = (queryClient: QueryClient) => {
       const response = await authFetch(datasetDetailApiUrl(datasetId), {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${sessionState.tokens.accessToken}`,
+          Authorization: `Bearer ${sessionState?.tokens?.accessToken ?? ''}`,
           'Content-Type': 'application/json',
         },
       });

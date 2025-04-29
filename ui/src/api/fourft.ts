@@ -58,15 +58,11 @@ export const useCreateFourFt = (navigate: UseNavigateResult<string>) => {
           Authorization: `Bearer ${sessionState?.tokens?.accessToken ?? ''}`,
         },
       });
-      //todo error handling, error boundary
       if (response.status === 400) {
-        throw new Error('Invalid data from the user');
-      }
-      if (response.status === 500) {
-        throw new Error('Internal server error');
+        throw new Error('Invalid data provided');
       }
       if (response.status !== 201) {
-        throw new Error('Something went wrong');
+        throw new Error('An unexpected error occurred, please try again');
       }
       return (await response.json()) as { id: number };
     },
@@ -99,12 +95,11 @@ export const useFullUpdateFourFt = (id: string, queryClient: QueryClient) => {
           Authorization: `Bearer ${token}`,
         },
       });
-      //todo error handling, error boundary
       if (response.status === 400) {
-        throw new Error('Invalid data from the user');
+        throw new Error('Invalid data provided');
       }
-      if (response.status === 500) {
-        throw new Error('Internal server error');
+      if (response.status !== 200) {
+        throw new Error('An unexpected error occurred, please try again');
       }
       await queryClient.invalidateQueries({ queryKey: [FOURFT_BASE_QUERY_KEY] });
     },
@@ -347,7 +342,8 @@ export const useGetFourFtResult = (
   const sessionState = useSessionTokens();
   const queryParams = {
     queryKey: [FOURFT_BASE_QUERY_KEY, fourFtResultId, ordering],
-    queryFn: () => fetchFourFtResult(fourFtResultId, sessionState.tokens.accessToken, ordering),
+    queryFn: () =>
+      fetchFourFtResult(fourFtResultId, sessionState?.tokens?.accessToken ?? '', ordering),
   };
 
   if (suspense) {

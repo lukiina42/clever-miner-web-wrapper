@@ -25,6 +25,7 @@ import {
 import { ClipLoader } from 'react-spinners';
 import FourFtRules from '@/containers/4ftminer/fourFtForm/rules/FourFtRules.tsx';
 import { useQueryClient } from '@tanstack/react-query';
+import AlertMessage from '@/components/form/AlertMessage.tsx';
 
 export type DatasetState = {
   value: Dataset | undefined;
@@ -91,12 +92,14 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
       return;
     }
 
-    processFourFtRequestMutation.mutate({
+    await processFourFtRequestMutation.mutateAsync({
       dataset_id: dataset.value.id.toString(),
       ...data,
     });
 
-    setFormIsOpen(false);
+    if (!processFourFtRequestMutation.isError) {
+      setFormIsOpen(false);
+    }
 
     addAnteSucceToEnd();
   };
@@ -122,6 +125,11 @@ export default function FourFtMinerUpdate(props: { data: FourFtResultDetail }) {
             </div>
           )}
           <CollapsibleContent className="w-full">
+            {processFourFtRequestMutation.isError && (
+              <div className={'pt-4 pl-4'}>
+                <AlertMessage message={processFourFtRequestMutation.error.message} />
+              </div>
+            )}
             <Form {...form}>
               <FourFtForm
                 onSubmit={onSubmit}

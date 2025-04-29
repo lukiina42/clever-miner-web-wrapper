@@ -20,6 +20,7 @@ import { delimiters, DelimiterType } from '@/data/delimiter.ts';
 import ButtonLoader from '@/components/ui/ButtonLoader.tsx';
 import { Label } from '@/components/ui/label.tsx';
 import { Dispatch, SetStateAction } from 'react';
+import AlertMessage from '@/components/form/AlertMessage.tsx';
 
 const datasetSchema = z
   .object({
@@ -27,7 +28,7 @@ const datasetSchema = z
       message: 'Please select a file',
     }),
     delimiter: StringMandatory(32),
-    delimiterText: StringOptional(32),
+    delimiterText: StringOptional(32).nullable().optional(),
   })
   .superRefine(({ delimiter, delimiterText }, ctx) => {
     if (delimiter === DelimiterType.Other && delimiterText === null) {
@@ -42,7 +43,7 @@ const datasetSchema = z
 const datasetDefaultValues = {
   file: null as unknown as File,
   delimiter: '',
-  delimiterText: '',
+  delimiterText: null,
 } satisfies DatasetSchemaT;
 
 type DatasetSchemaT = z.infer<typeof datasetSchema>;
@@ -66,7 +67,7 @@ export default function AddDatasetForm({
 
   const uploadDatasetMutation = useCreateDataset(queryClientFromHook, setIsOpen);
 
-  const onSubmit = async (data: DatasetSchemaT) => {
+  const onSubmit = (data: DatasetSchemaT) => {
     const delimiter = data.delimiter === DelimiterType.Other ? data.delimiterText! : data.delimiter;
     const mutationData = {
       file: data.file,
@@ -87,6 +88,10 @@ export default function AddDatasetForm({
   return (
     <FormProvider {...form}>
       <form className="grid gap-4 py-2" onSubmit={handleSubmit(onSubmit)}>
+        {uploadDatasetMutation.isError && (
+          <AlertMessage message={uploadDatasetMutation.error.message} />
+        )}
+
         <FormField
           control={form.control}
           name="delimiter"
@@ -122,7 +127,7 @@ export default function AddDatasetForm({
               {...register('delimiterText', {
                 onChange: (event) => {
                   const value = event.target.value;
-                  setValue('delimiterText', value);
+                  setValue('delimiterText', value || null);
                   if (value !== '') {
                     clearErrors('delimiterText');
                   }
@@ -134,7 +139,7 @@ export default function AddDatasetForm({
         )}
         <FileField
           name="file"
-          register={register}
+          register={register as any}
           setValue={addFile}
           accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .data, .txt"
           multiple={false}
@@ -150,7 +155,7 @@ export default function AddDatasetForm({
             Selected file: <span className={'font-bold'}>{file.name}</span>
           </div>
         )}
-        <Button type="submit">
+        <Button type="submit" disabled={uploadDatasetMutation.isPending}>
           {uploadDatasetMutation.isPending ? <ButtonLoader /> : 'Save changes'}
         </Button>
       </form>

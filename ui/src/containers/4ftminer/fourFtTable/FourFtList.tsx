@@ -151,7 +151,7 @@ export default function FourFtList({ fourFtResults, isLoading }: FourFtListProps
                     return (
                       <TableRow
                         key={fourftResult.id}
-                        className="grid grid-cols-9 gap-4 hover:bg-muted/50"
+                        className="grid grid-cols-9 gap-4 hover:bg-muted/50 items-center"
                       >
                         <TableCell className="col-span-2 font-medium">
                           {fourftResult.name}

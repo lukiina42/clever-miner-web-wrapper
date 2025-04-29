@@ -22,6 +22,7 @@ import {
 } from '@/schema/fourFtForm.ts';
 import { useNavigate } from '@tanstack/react-router';
 import { ClipLoader } from 'react-spinners';
+import AlertMessage from '@/components/form/AlertMessage.tsx';
 
 export type DatasetState = {
   value: Dataset | undefined;
@@ -88,8 +89,6 @@ export default function FourFtMinerCreate() {
       ...data,
     });
 
-    setFormIsOpen(false);
-
     addAnteSucceToEnd();
   };
 
@@ -114,6 +113,11 @@ export default function FourFtMinerCreate() {
             </div>
           )}
           <CollapsibleContent className="w-full">
+            {processFourFtRequestMutation.isError && (
+              <div className={'pt-4 pl-4'}>
+                <AlertMessage message={processFourFtRequestMutation.error.message} />
+              </div>
+            )}
             <Form {...form}>
               <FourFtForm
                 onSubmit={onSubmit}
