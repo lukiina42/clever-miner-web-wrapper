@@ -2,8 +2,6 @@ import { baseApiUrl } from '@/utils/constants.ts';
 import { z } from 'zod';
 import { QueryClient, useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { Dispatch, SetStateAction } from 'react';
-import useSessionTokens from '@/hook/useGetSession.ts';
-import { authFetch } from '@/utils/authUtils.ts';
 
 // Define the Zod schema
 export const datasetSchema = z.object({
@@ -34,7 +32,7 @@ export interface DatasetFilters {
   [key: string]: string | undefined;
 }
 
-const fetchDatasets = async (token: string, filters?: DatasetFilters): Promise<Dataset[]> => {
+const fetchDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> => {
   // Construct URL with query parameters
   let url = datasetApiUrl;
 
@@ -49,9 +47,7 @@ const fetchDatasets = async (token: string, filters?: DatasetFilters): Promise<D
     }
   }
 
-  const fetchResult = await authFetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const fetchResult = await fetch(url);
   const data = await fetchResult.json();
 
   try {
@@ -70,10 +66,9 @@ const fetchDatasets = async (token: string, filters?: DatasetFilters): Promise<D
 };
 
 export const useGetDatasets = (filters?: DatasetFilters, suspense = false) => {
-  const sessionState = useSessionTokens();
   const options = {
     queryKey: [...DATASETS_COLLECTION_QUERY_KEY, filters],
-    queryFn: () => fetchDatasets(sessionState?.tokens?.accessToken ?? '', filters),
+    queryFn: () => fetchDatasets(filters),
   };
 
   if (suspense) {
@@ -91,16 +86,14 @@ export const useCreateDataset = (
   queryClient: QueryClient,
   setOpenForm: Dispatch<SetStateAction<boolean>>
 ) => {
-  const sessionState = useSessionTokens();
   return useMutation({
     mutationFn: async (dataset: CreateDatasetPayload) => {
       const data = new FormData();
       data.append('file', dataset.file);
       data.append('delimiter', dataset.delimiter);
-      const response = await authFetch(datasetApiUrl, {
+      const response = await fetch(datasetApiUrl, {
         method: 'POST',
         body: data,
-        headers: { Authorization: `Bearer ${sessionState?.tokens?.accessToken ?? ''}` },
       });
 
       if (response.status === 201) {
@@ -109,18 +102,15 @@ export const useCreateDataset = (
         return await response.json();
       }
 
+      const errorData = await response.json();
       if (response.status === 400) {
-        throw new Error('Invalid data provided');
-      } else if (response.status === 403) {
-        throw new Error('You do not have permission to create datasets');
+        throw new Error(errorData.error || 'Invalid data provided');
       } else if (response.status === 413) {
         throw new Error('File too large');
       } else if (response.status === 415) {
         throw new Error('Unsupported file type');
       } else {
-        throw new Error(
-          'An unexpected error occurred. The problem might be caused by wrong delimiter.'
-        );
+        throw new Error(errorData.error || 'An unexpected error occurred');
       }
     },
     onSuccess: async () => {},
@@ -137,14 +127,11 @@ export const useCreateDataset = (
  * @returns Mutation for deleting a dataset
  */
 export const useDeleteDataset = (queryClient: QueryClient) => {
-  const sessionState = useSessionTokens();
-
   return useMutation({
     mutationFn: async (datasetId: string) => {
-      const response = await authFetch(datasetDetailApiUrl(datasetId), {
+      const response = await fetch(datasetDetailApiUrl(datasetId), {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${sessionState?.tokens?.accessToken ?? ''}`,
           'Content-Type': 'application/json',
         },
       });
@@ -156,8 +143,6 @@ export const useDeleteDataset = (queryClient: QueryClient) => {
         // Dataset is being used by some results
         const errorData = await response.json();
         throw new Error(errorData.error || 'Cannot delete dataset because it is in use.');
-      } else if (response.status === 403) {
-        throw new Error('You do not have permission to delete this dataset.');
       } else if (response.status === 404) {
         throw new Error('Dataset not found.');
       } else {

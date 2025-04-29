@@ -22,9 +22,26 @@ class ResultService:
         """
         try:
             instance = FourFtResult.objects.get(id=result_id)
-            if instance.user and instance.user != user:
-                raise PermissionDenied("You do not have permission to access this result")
             return instance
+        except FourFtResult.DoesNotExist:
+            raise NotFound(detail=f"FourFtResult with id {result_id} not found.")
+    
+    @staticmethod
+    def get_result(result_id):
+        """
+        Get a FourFtResult instance by ID without permission checks.
+        
+        Args:
+            result_id: The ID of the FourFtResult
+            
+        Returns:
+            FourFtResult: The requested FourFtResult
+            
+        Raises:
+            NotFound: If the FourFtResult does not exist
+        """
+        try:
+            return FourFtResult.objects.get(id=result_id)
         except FourFtResult.DoesNotExist:
             raise NotFound(detail=f"FourFtResult with id {result_id} not found.")
     
@@ -42,8 +59,8 @@ class ResultService:
         Returns:
             QuerySet: The filtered FourFtResult instances
         """
-        # Filter results by the current user
-        four_ft_results = FourFtResult.objects.filter(user=user)
+        # Return all results instead of filtering by user
+        four_ft_results = FourFtResult.objects.all()
         
         # Apply name filter if provided
         if name:
@@ -64,6 +81,27 @@ class ResultService:
             four_ft_results = four_ft_results.order_by('-created_at')
         
         return four_ft_results
+    
+    @staticmethod
+    def get_results(name=None, dataset_name=None, ordering=None):
+        """
+        Get all FourFtResult instances with optional filtering.
+        Wrapper around filter_results without user parameter.
+        
+        Args:
+            name: Optional name filter
+            dataset_name: Optional dataset name filter
+            ordering: Optional ordering field
+            
+        Returns:
+            QuerySet: The filtered FourFtResult instances
+        """
+        return ResultService.filter_results(
+            user=None,
+            name=name,
+            dataset_name=dataset_name,
+            ordering=ordering
+        )
     
     @staticmethod
     def sort_rules_by_field(rules, ordering):

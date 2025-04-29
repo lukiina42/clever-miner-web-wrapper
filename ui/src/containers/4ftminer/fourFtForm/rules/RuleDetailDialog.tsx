@@ -11,7 +11,6 @@ import { ClipLoader } from 'react-spinners';
 import RuleDetailDialogBase from '@/containers/4ftminer/fourFtForm/rules/RuleDetailDialogBase.tsx';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { Link } from '@tanstack/react-router';
-import useGetSession from '@/hook/useGetSession.ts';
 import { RuleParams } from '@/api/fourft.ts';
 
 type Props = {
@@ -23,10 +22,8 @@ type Props = {
 export default function RuleDetailDialog({ currentRuleId, closeDialog, fourFtResultId }: Props) {
   const isOpen = currentRuleId !== null;
 
-  const session = useGetSession();
-
   const ruleData = useQuery({
-    ...ruleQueryOptions(fourFtResultId, currentRuleId, session?.tokens?.accessToken ?? ''),
+    ...ruleQueryOptions(fourFtResultId, currentRuleId),
     enabled: currentRuleId !== null,
   });
 
