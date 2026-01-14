@@ -1,9 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
-from rest_framework.exceptions import NotFound, PermissionDenied
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework import status
+from rest_framework.exceptions import NotFound
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 
@@ -27,29 +26,27 @@ class FourFtMinerView(APIView):
     API view for handling the collection of FourFtResult resources.
     Supports listing all results and creating new ones.
     """
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request, *args, **kwargs):
         """
         Create a new FourFtResult instance.
         
         Runs the data mining process using the specified dataset and parameters,
-        stores the results, and associates it with the current user.
+        stores the results.
         """
         serializer = FourFtMinerSerializer(data=request.data)
         if serializer.is_valid():
             validated_data = serializer.validated_data
             dataset_id = validated_data['dataset_id']
             
-            # Get dataset with permission check
-            dataset = DatasetService.get_dataset_with_permission_check(dataset_id, request.user)
+            # Get dataset without permission check
+            dataset = DatasetService.get_dataset(dataset_id)
             
             # Process mining data
             clm = MiningService.process_mining_data(validated_data, dataset)
 
-            # Save to db with the current user
-            result = serializer.save(clm=clm, user=request.user)
+            # Save to db without user association
+            result = serializer.save(clm=clm)
 
             return Response({'id': result.id}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -83,9 +80,9 @@ class FourFtMinerView(APIView):
     )
     def get(self, request, *args, **kwargs):
         """
-        List all FourFtResult instances belonging to the current user.
+        List all FourFtResult instances.
         
-        Returns a list of all mining results created by the authenticated user.
+        Returns a list of all mining results.
         
         Query Parameters:
         - name: Filter results by name (contains)
@@ -98,9 +95,8 @@ class FourFtMinerView(APIView):
         dataset_name_filter = request.query_params.get('dataset_name', None)
         ordering = request.query_params.get('ordering', None)
         
-        # Filter results
-        four_ft_results = ResultService.filter_results(
-            user=request.user,
+        # Filter results without user restriction
+        four_ft_results = ResultService.get_results(
             name=name_filter,
             dataset_name=dataset_name_filter,
             ordering=ordering
@@ -115,8 +111,6 @@ class FourFtResultDetailView(APIView):
     """
     API endpoint for retrieving, updating, and deleting a specific FourFtResult.
     """
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request, id=None, four_ft_id=None):
         """
@@ -125,8 +119,8 @@ class FourFtResultDetailView(APIView):
         result_id = id or four_ft_id
         
         try:
-            # Get result with permission check
-            result = ResultService.get_result_with_permission_check(result_id, request.user)
+            # Get result without permission check
+            result = ResultService.get_result(result_id)
             
             # Get ordering parameter from query params
             ordering = request.query_params.get('ordering', None)
@@ -135,17 +129,17 @@ class FourFtResultDetailView(APIView):
             serializer = FourFtMinerSerializer(result, context={"request": request})
             data = serializer.data
             
-            rules = data['rules']
+            # Safely access rules if they exist
+            if 'rules' in data:
+                rules = data['rules']
                 
-            # Apply ordering if provided
-            if ordering and rules:
-                data['rules'] = ResultService.sort_rules_by_field(rules, ordering)
+                # Apply ordering if provided
+                if ordering and rules:
+                    data['rules'] = ResultService.sort_rules_by_field(rules, ordering)
 
             return Response(data, status=status.HTTP_200_OK)
         except NotFound as e:
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
-        except PermissionDenied as e:
-            return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
  
@@ -156,8 +150,8 @@ class FourFtResultDetailView(APIView):
         Re-runs the mining process with updated parameters and updates the stored result.
         """
         try:
-            # Get existing result with permission check
-            instance = ResultService.get_result_with_permission_check(id, request.user)
+            # Get existing result without permission check
+            instance = ResultService.get_result(id)
             
             # Validate the data
             serializer = FourFtMinerSerializer(instance, data=request.data, partial=False)
@@ -165,8 +159,8 @@ class FourFtResultDetailView(APIView):
                 validated_data = serializer.validated_data
                 dataset_id = validated_data['dataset_id']
                 
-                # Get dataset with permission check
-                dataset = DatasetService.get_dataset_with_permission_check(dataset_id, request.user)
+                # Get dataset without permission check
+                dataset = DatasetService.get_dataset(dataset_id)
                 
                 # Process mining data
                 clm = MiningService.process_mining_data(validated_data, dataset)
@@ -183,8 +177,8 @@ class FourFtResultDetailView(APIView):
         
         except NotFound as e:
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
-        except PermissionDenied as e:
-            return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
     def delete(self, request, id=None, four_ft_id=None):
         """
@@ -208,12 +202,10 @@ class FourFtResultRuleDetailView(RetrieveAPIView):
     API view for retrieving specific rules from a FourFtResult.
     """
     serializer_class = RuleDataSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        # Filter queryset by the current user
-        return FourFtResult.objects.filter(user=self.request.user)
+        # Return all FourFt results without user filtering
+        return FourFtResult.objects.all()
 
     def get_object(self):
         """
@@ -225,8 +217,10 @@ class FourFtResultRuleDetailView(RetrieveAPIView):
         four_ft_id = self.kwargs.get("four_ft_id")
         rule_id = int(self.kwargs.get("rule_id"))
         
-        # Get rule with details
-        rule_data = RuleService.get_rule_with_details(four_ft_id, rule_id, self.request.user)
+        rule_data = RuleService.get_rule_with_details(four_ft_id, rule_id)
+        
+        if not rule_data:
+            raise NotFound(f"Rule with ID {rule_id} not found")
         
         # Generate visualization
         plot = VisualizationService.generate_rule_visualization(rule_data['clm'], rule_data['rule_id'])

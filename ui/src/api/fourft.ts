@@ -10,8 +10,6 @@ import { FourFtSchemaT } from '@/schema/fourFtForm.ts';
 import { z } from 'zod';
 import { Dataset, datasetSchema } from '@/api/dataset.ts';
 import { UseNavigateResult } from '@tanstack/react-router';
-import useSessionTokens from '@/hook/useGetSession.ts';
-import { authFetch } from '@/utils/authUtils.ts';
 
 export const fourFtBaseApiUrl = `${baseApiUrl}/fourftminer`;
 
@@ -28,10 +26,9 @@ export interface FourFtFilters {
 }
 
 export const useGetFourFts = (filters?: FourFtFilters, suspense?: boolean) => {
-  const sessionState = useSessionTokens();
   const queryParams = {
     queryKey: [FOURFT_BASE_QUERY_KEY, filters],
-    queryFn: () => fetchFourFtResults(sessionState?.tokens?.accessToken ?? '', filters),
+    queryFn: () => fetchFourFtResults(filters),
   };
 
   if (suspense) {
@@ -41,8 +38,6 @@ export const useGetFourFts = (filters?: FourFtFilters, suspense?: boolean) => {
 };
 
 export const useCreateFourFt = (navigate: UseNavigateResult<string>) => {
-  const sessionState = useSessionTokens();
-
   return useMutation({
     mutationFn: async (
       data: FourFtSchemaT & {
@@ -50,12 +45,11 @@ export const useCreateFourFt = (navigate: UseNavigateResult<string>) => {
       }
     ) => {
       const stringifiedData = JSON.stringify(data);
-      const response = await authFetch(fourFtBaseApiUrl, {
+      const response = await fetch(fourFtBaseApiUrl, {
         method: 'POST',
         body: stringifiedData,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionState?.tokens?.accessToken ?? ''}`,
         },
       });
       if (response.status === 400) {
@@ -77,9 +71,6 @@ export const useCreateFourFt = (navigate: UseNavigateResult<string>) => {
 };
 
 export const useFullUpdateFourFt = (id: string, queryClient: QueryClient) => {
-  const sessionState = useSessionTokens();
-  const token = sessionState?.tokens?.accessToken ?? '';
-
   return useMutation({
     mutationFn: async (
       data: FourFtSchemaT & {
@@ -87,12 +78,11 @@ export const useFullUpdateFourFt = (id: string, queryClient: QueryClient) => {
       }
     ) => {
       const stringifiedData = JSON.stringify(data);
-      const response = await authFetch(fourFtPutApiUrl(id), {
+      const response = await fetch(fourFtPutApiUrl(id), {
         method: 'PUT',
         body: stringifiedData,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
       });
       if (response.status === 400) {
@@ -118,16 +108,12 @@ export const useFullUpdateFourFt = (id: string, queryClient: QueryClient) => {
  * @returns Mutation for deleting a FourFtResult
  */
 export const useDeleteFourFt = (queryClient: QueryClient, navigate?: UseNavigateResult<string>) => {
-  const sessionState = useSessionTokens();
-  const token = sessionState?.tokens?.accessToken ?? '';
-
   return useMutation({
     mutationFn: async (fourFtId: string) => {
-      const response = await authFetch(fourFtDetailApiUrl(fourFtId), {
+      const response = await fetch(fourFtDetailApiUrl(fourFtId), {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -140,8 +126,6 @@ export const useDeleteFourFt = (queryClient: QueryClient, navigate?: UseNavigate
           });
         }
         return true; // Success
-      } else if (response.status === 403) {
-        throw new Error('You do not have permission to delete this result.');
       } else if (response.status === 404) {
         throw new Error('Result not found.');
       } else {
@@ -237,7 +221,6 @@ export type FourFtResultDetail = Omit<FourFtResultDetailApi, 'id' | 'dataset'> &
 
 const fetchFourFtResult = async (
   fourFtResultId: string,
-  token: string,
   ordering?: string
 ): Promise<FourFtResultDetail> => {
   // Construct URL with query parameters
@@ -247,10 +230,9 @@ const fetchFourFtResult = async (
     url = `${url}?ordering=${encodeURIComponent(ordering)}`;
   }
 
-  const fetchResult = await authFetch(url, {
+  const fetchResult = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
   });
   const data = await fetchResult.json();
@@ -276,10 +258,7 @@ type FourFtResultApi = z.infer<typeof fourFtResultSchema>;
 
 export type FourFtResult = Omit<FourFtResultApi, 'id'> & { id: string };
 
-const fetchFourFtResults = async (
-  token: string,
-  filters?: FourFtFilters
-): Promise<FourFtResult[]> => {
+const fetchFourFtResults = async (filters?: FourFtFilters): Promise<FourFtResult[]> => {
   // Construct URL with query parameters
   let url = fourFtBaseApiUrl;
 
@@ -295,10 +274,9 @@ const fetchFourFtResults = async (
     }
   }
 
-  const fetchResult = await authFetch(url, {
+  const fetchResult = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
   });
   const data = await fetchResult.json();
@@ -318,20 +296,16 @@ const fetchFourFtResults = async (
   });
 };
 
-export const fourFtResultsQueryOptions = (token: string) =>
+export const fourFtResultsQueryOptions = () =>
   queryOptions({
     queryKey: [FOURFT_BASE_QUERY_KEY],
-    queryFn: () => fetchFourFtResults(token),
+    queryFn: () => fetchFourFtResults(),
   });
 
-export const fourFtResultQueryOptions = (
-  fourFtResultId: string,
-  token: string,
-  ordering?: string
-) =>
+export const fourFtResultQueryOptions = (fourFtResultId: string, ordering?: string) =>
   queryOptions({
     queryKey: [FOURFT_BASE_QUERY_KEY, fourFtResultId, ordering],
-    queryFn: () => fetchFourFtResult(fourFtResultId, token, ordering),
+    queryFn: () => fetchFourFtResult(fourFtResultId, ordering),
   });
 
 export const useGetFourFtResult = (
@@ -339,11 +313,9 @@ export const useGetFourFtResult = (
   ordering?: string,
   suspense?: boolean
 ) => {
-  const sessionState = useSessionTokens();
   const queryParams = {
     queryKey: [FOURFT_BASE_QUERY_KEY, fourFtResultId, ordering],
-    queryFn: () =>
-      fetchFourFtResult(fourFtResultId, sessionState?.tokens?.accessToken ?? '', ordering),
+    queryFn: () => fetchFourFtResult(fourFtResultId, ordering),
   };
 
   if (suspense) {

@@ -6,14 +6,13 @@ class RuleService:
     """Service class for rule operations"""
     
     @staticmethod
-    def get_rule_with_details(four_ft_id, rule_id, user):
+    def get_rule_with_details(four_ft_id, rule_id):
         """
         Get a rule with its details from a FourFtResult.
         
         Args:
             four_ft_id: The ID of the FourFtResult
             rule_id: The ID of the rule
-            user: The user requesting access
             
         Returns:
             dict: The rule details
@@ -22,7 +21,7 @@ class RuleService:
             NotFound: If the FourFtResult or rule does not exist
         """
         # Get the FourFtResult
-        obj = FourFtResult.objects.filter(id=four_ft_id, user=user).first()
+        obj = FourFtResult.objects.filter(id=four_ft_id).first()
         
         if not obj:
             raise NotFound(f'FourFtResult with id {four_ft_id} was not found.')

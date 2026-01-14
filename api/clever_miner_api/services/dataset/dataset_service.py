@@ -1,4 +1,4 @@
-from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.exceptions import NotFound
 from ...models import Dataset, FourFtResult
 from ...storage import delete_file
 from ...serializers.dataset import DatasetSerializer
@@ -10,19 +10,18 @@ class DatasetService:
     """
 
     @staticmethod
-    def filter_datasets(user, name=None, ordering=None):
+    def filter_datasets(name=None, ordering=None):
         """
-        Filter datasets by user and optional name and ordering.
+        Filter datasets by optional name and ordering.
         
         Args:
-            user: The user to filter datasets for
             name: Optional name filter
             ordering: Optional ordering field
             
         Returns:
             Queryset of filtered datasets
         """
-        queryset = Dataset.objects.filter(user=user)
+        queryset = Dataset.objects.all()
         
         if name:
             queryset = queryset.filter(name__icontains=name)
@@ -33,30 +32,42 @@ class DatasetService:
         return queryset
     
     @staticmethod
-    def get_dataset_with_permission_check(dataset_id, user):
+    def get_dataset(dataset_id):
         """
-        Get a dataset by ID with permission check.
+        Get a dataset by ID.
         
         Args:
             dataset_id: ID of the dataset to retrieve
-            user: User requesting the dataset
             
         Returns:
             Dataset instance
             
         Raises:
             NotFound: If dataset with given ID doesn't exist
-            PermissionDenied: If user doesn't have permission to access the dataset
         """
         try:
             dataset = Dataset.objects.get(pk=dataset_id)
         except Dataset.DoesNotExist:
             raise NotFound(f"Dataset with ID {dataset_id} not found")
         
-        if dataset.user != user:
-            raise PermissionDenied("You do not have permission to access this dataset")
-        
         return dataset
+    
+    @staticmethod
+    def get_dataset_with_permission_check(dataset_id, user):
+        """
+        Get a dataset by ID without permission checks.
+        
+        Args:
+            dataset_id: ID of the dataset to retrieve
+            user: User requesting access (unused, for compatibility)
+            
+        Returns:
+            Dataset instance
+            
+        Raises:
+            NotFound: If dataset with given ID doesn't exist
+        """
+        return DatasetService.get_dataset(dataset_id)
     
     @staticmethod
     def has_related_results(dataset):

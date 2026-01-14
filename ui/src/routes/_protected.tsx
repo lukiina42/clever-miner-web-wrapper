@@ -1,15 +1,9 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import ProtectedRoute from '@/components/auth/ProtectedRoute.tsx';
 
 export const Route = createFileRoute('/_protected')({
-  component: ProtectedLayout,
+  component: ProtectedRoute,
 });
 
-function ProtectedLayout() {
-  // Render the child routes
-  return (
-    <ProtectedRoute>
-      <Outlet />
-    </ProtectedRoute>
-  );
+function ProtectedRoute() {
+  return <Outlet />;
 }

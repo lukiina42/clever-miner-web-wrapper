@@ -3,7 +3,6 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { fourFtResultQueryOptions } from '@/api/fourft.ts';
 import FourFtMinerUpdate from '@/containers/4ftminer/fourFtForm/FourFtMinerUpdate.tsx';
 import SuspenseWrapper from '@/components/suspense/SuspenseWrapper.tsx';
-import useSessionTokens from '@/hook/useGetSession.ts';
 
 type FourFtDetailSearch = {
   ordering?: string;
@@ -29,11 +28,8 @@ function FourFtDetailSuspense() {
 function FourFtDetail() {
   const { fourftId } = Route.useParams();
   const { ordering } = Route.useSearch();
-  const sessionState = useSessionTokens();
 
-  const fourFtResult = useSuspenseQuery(
-    fourFtResultQueryOptions(fourftId, sessionState?.tokens?.accessToken ?? '', ordering as string)
-  );
+  const fourFtResult = useSuspenseQuery(fourFtResultQueryOptions(fourftId, ordering as string));
 
   return <FourFtMinerUpdate data={fourFtResult.data} />;
 }
